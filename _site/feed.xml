@@ -1,0 +1,501 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.6.2">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2017-12-01T00:32:46-05:00</updated><id>http://localhost:4000/</id><title type="html">J. Mark Hou</title><subtitle></subtitle><entry><title type="html">What are parameter estimates even</title><link href="http://localhost:4000/estimates/" rel="alternate" type="text/html" title="What are parameter estimates even" /><published>2017-11-28T21:00:00-05:00</published><updated>2017-11-28T21:00:00-05:00</updated><id>http://localhost:4000/estimates</id><content type="html" xml:base="http://localhost:4000/estimates/">&lt;p&gt;People often try and estimate things.  For example, people at tech companies tend to run a lot of experiments in order to estimate the impact of various policies (e.g. new website layout) on important-ish things (e.g. user signup rate).  The process generally works like this:&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;run your experiment and get some data&lt;/li&gt;
+  &lt;li&gt;use your data to build an estimate of the impact of your policy&lt;/li&gt;
+  &lt;li&gt;assume that this estimate is your best proxy for the true impact&lt;/li&gt;
+  &lt;li&gt;base your decisions on this estimate of the impact (e.g. move to the new website layout if the impact on conversion is sufficiently positive)&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;As it turns out, step 3 is actually not quite correct, and your estimate is in general &lt;em&gt;not&lt;/em&gt; your best proxy for the true impact.  I recently saw a presentation by &lt;a href=&quot;https://sites.google.com/site/tomcunningham/home&quot;&gt;Tom Cunningham&lt;/a&gt; and &lt;a href=&quot;https://research.fb.com/people/coey-dominic/&quot;&gt;Dominic Coey&lt;/a&gt; from Facebook Research discussing their attempts at solving this problem.  The result is straightforward (and quite cute), but is somewhat unintuitive on first glance.  This unintuitiveness also leads to some interesting organizational challenges in practice.  I’ll describe these things here.&lt;/p&gt;
+
+&lt;h3 id=&quot;intuition&quot;&gt;Intuition&lt;/h3&gt;
+&lt;ul&gt;
+  &lt;li&gt;Let &lt;script type=&quot;math/tex&quot;&gt;\gamma&lt;/script&gt; be the true impact, and &lt;script type=&quot;math/tex&quot;&gt;\hat{\gamma}&lt;/script&gt; be your estimate.&lt;/li&gt;
+  &lt;li&gt;If your experiment was designed correctly, then your estimate should just be the truth plus some uncorrelated noise: \begin{equation}
+\mathbb{E}[\hat{\gamma}\mid\gamma]=\gamma
+\end{equation}&lt;/li&gt;
+  &lt;li&gt;However, &lt;em&gt;we don’t actually care about this quantity&lt;/em&gt;.  Instead, what we want is the best estimate of &lt;script type=&quot;math/tex&quot;&gt;\gamma&lt;/script&gt; given our estimate. That is:
+\begin{equation}
+\mathbb{E}[\gamma\mid\hat{\gamma}]
+\end{equation}&lt;/li&gt;
+  &lt;li&gt;In general, &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[\gamma\mid\hat{\gamma}] \neq \hat{\gamma}&lt;/script&gt;, so we can probably do better than just using &lt;script type=&quot;math/tex&quot;&gt;\hat{\gamma}&lt;/script&gt; as a proxy for the true value &lt;script type=&quot;math/tex&quot;&gt;\gamma&lt;/script&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;That’s really all there is to it.  From a Bayesian perspective this is quite clear.  Your estimate is going to be the true value plus some noise: &lt;script type=&quot;math/tex&quot;&gt;\hat{\gamma}=\gamma+\epsilon&lt;/script&gt;, so conditional on the estimate &lt;script type=&quot;math/tex&quot;&gt;\hat{\gamma}&lt;/script&gt;, there’s some distribution of possible true &lt;script type=&quot;math/tex&quot;&gt;\gamma&lt;/script&gt;s that could have generated this &lt;script type=&quot;math/tex&quot;&gt;\hat{\gamma}&lt;/script&gt;, and in general this distribution isn’t going to average out to exactly &lt;script type=&quot;math/tex&quot;&gt;\hat{\gamma}&lt;/script&gt;.&lt;/p&gt;
+
+&lt;p&gt;It’s worth noting a few things:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;This has nothing to do with endogeneity / your experiment being bad.&lt;/li&gt;
+  &lt;li&gt;This has nothing to do with selection bias / somehow only seeing large estimates / people exaggerating their effect sizes.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;probably-shrink-your-estimates-but-not-always&quot;&gt;Probably shrink your estimates (but not always)&lt;/h3&gt;
+&lt;p&gt;Alright, so your estimate &lt;script type=&quot;math/tex&quot;&gt;\hat{\gamma}&lt;/script&gt; is going to be an imperfect proxy for the truth &lt;script type=&quot;math/tex&quot;&gt;\gamma&lt;/script&gt;.  Most of the time, your estimate will be too extreme and will need to be shrunk down, but sometimes they’ll be too conservative and will need to be scaled up.  Some examples to illustrate this:&lt;/p&gt;
+
+&lt;h4 id=&quot;1-probably-shrink-your-estimates&quot;&gt;1. Probably shrink your estimates&lt;/h4&gt;
+&lt;p&gt;On average, your parameter estimates are going to be over-biased because of noise.  Consider this example: let &lt;script type=&quot;math/tex&quot;&gt;\hat{\gamma}=\gamma+\epsilon&lt;/script&gt; with &lt;script type=&quot;math/tex&quot;&gt;\gamma&lt;/script&gt; and &lt;script type=&quot;math/tex&quot;&gt;\epsilon&lt;/script&gt; mean-&lt;script type=&quot;math/tex&quot;&gt;0&lt;/script&gt; and independent.  If you fit a linear regression of &lt;script type=&quot;math/tex&quot;&gt;\gamma&lt;/script&gt; on &lt;script type=&quot;math/tex&quot;&gt;\hat{\gamma}&lt;/script&gt;
+\begin{equation}
+\gamma = a+b\hat{\gamma}
+\end{equation}
+then the coefficients &lt;script type=&quot;math/tex&quot;&gt;a,b&lt;/script&gt; will be just 
+\begin{equation}
+a=\mathbb{E}[\gamma]=0, \quad b = \frac{cov(\gamma, \hat{\gamma})}{var(\hat{\gamma})} = \frac{var(\gamma)}{var(\gamma)+var(\epsilon)}&amp;lt;1
+\end{equation}
+That is, if you restrict yourself to just applying some uniform scaling to your estimates, then the best adjustment (in a squared loss sense) is to shrink your estimate towards the mean.  The noisier your estimate is, the more you should shrink it.  Even though &lt;script type=&quot;math/tex&quot;&gt;E[\hat{\gamma}\mid\gamma]=\gamma&lt;/script&gt;, you should still shrink it.&lt;/p&gt;
+
+&lt;p&gt;A few points:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;The mean-zero assumption is WLOG since you can just… demean everything.&lt;/li&gt;
+  &lt;li&gt;This is basically just attenuation bias / errors in variables.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;We can go ahead and simulate this.  We’ll assume all noise is Gaussian because that’s easy, though the above result doesn’t require any parametric assumptions.&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;numpy&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;matplotlib.pyplot&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;plt&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;matplotlib&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;inline&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;sklearn.linear_model&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;LinearRegression&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;n&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1000&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;gamma&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;random&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;normal&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;n&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;gamma_hat&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;gamma&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;random&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;normal&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;n&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;lm&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;LinearRegression&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;lm&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gamma_hat&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;reshape&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;gamma&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lm&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;intercept_&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lm&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;coef_&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;plt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;scatter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gamma_hat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;gamma&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alpha&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;xhat&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;linspace&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gamma_hat&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;min&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;gamma_hat&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;max&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;100&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;yhat&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lm&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;predict&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;xhat&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;reshape&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;plt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;plot&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;xhat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;yhat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;color&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'red'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;plt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;xlabel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'gamma_hat'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;plt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ylabel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'gamma'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;plt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;title&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'coefficient on gamma_hat: {:.3f}'&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lm&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;coef_&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]))&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;&lt;img src=&quot;http://localhost:4000/assets/images/2017-11-27-linear.png&quot; alt=&quot;linear&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;As expected, the coefficient on &lt;code class=&quot;highlighter-rouge&quot;&gt;gamma_hat&lt;/code&gt; here is around 1/2 since the variance of the truth and the variance of the noise are equal.&lt;/p&gt;
+
+&lt;h4 id=&quot;2-but-not-always&quot;&gt;2. But not always&lt;/h4&gt;
+&lt;p&gt;So, on average, you should probably shrink down your estimates.  But there are clear situations where you should scale them up instead.  Consider this example:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;the distribution of true parameter value is bimodal&lt;/li&gt;
+  &lt;li&gt;your parameter estimate ends up being just below one of the modes&lt;/li&gt;
+  &lt;li&gt;thus, the true value is probably a bit closer to that mode than your parameter estimate&lt;/li&gt;
+  &lt;li&gt;so, you should probably scale your estimates up a bit&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;We can also go and simulate this, where we make the distribution of true parameter values a mixture of two Gaussians centered on either side of the origin.  Thus, parameter estimates near 0 should be scaled up, whereas parameter estimates far from zero should be scaled down:&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;numpy&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;matplotlib.pyplot&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;plt&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;matplotlib&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;inline&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;statsmodels.nonparametric.kernel_regression&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;KernelReg&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;sklearn.linear_model&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;LinearRegression&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;n&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1000&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;loc&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;gamma&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;concatenate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;([&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;random&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;normal&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;loc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;loc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;n&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
+                       &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;random&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;normal&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;loc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;loc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;n&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)])&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;gamma_hat&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;gamma&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;random&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;normal&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;n&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;kr&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;KernelReg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gamma&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;gamma_hat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;var_type&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'c'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;reg_type&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;'lc'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bw&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;plt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;scatter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gamma_hat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;gamma&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alpha&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;xhat&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;linspace&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gamma_hat&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;min&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;gamma_hat&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;max&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;100&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;yhat&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kr&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;xhat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;plt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;plot&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;xhat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;yhat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;color&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'red'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;plt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;xlabel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'gamma_hat'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;plt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ylabel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'gamma'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;&lt;img src=&quot;http://localhost:4000/assets/images/2017-11-27-upscale.png&quot; alt=&quot;upscale&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The slope of the local regression is quite high around 0, indicating that the estimates should be scaled up around 0, whereas further away from 0 the slope is lower.&lt;/p&gt;
+
+&lt;h3 id=&quot;what-to-do-in-practice&quot;&gt;What to do in practice?&lt;/h3&gt;
+&lt;p&gt;Ok, so it seems like it might make sense to scale your parameter estimates up/down (mostly down).  But how do you actually implement something like this in practice?  If we could observe the true &lt;script type=&quot;math/tex&quot;&gt;\gamma&lt;/script&gt; in addition to our estimates &lt;script type=&quot;math/tex&quot;&gt;\hat{\gamma}&lt;/script&gt;, then we could just try and estimate &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[\gamma\mid \hat{\gamma}]&lt;/script&gt; with some kind of regression like we did in the examples above.  That’s too bad, because &lt;script type=&quot;math/tex&quot;&gt;\gamma&lt;/script&gt; is clearly not observable, but the Facebook guys proposed a not unreasonable method for how to do this anyway:&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;suppose you want to run an experiment&lt;/li&gt;
+  &lt;li&gt;break your population into two groups&lt;/li&gt;
+  &lt;li&gt;literally run the experiment twice in parallel on each of the two groups&lt;/li&gt;
+  &lt;li&gt;get two estimate of the true parameter from the two groups: &lt;script type=&quot;math/tex&quot;&gt;\hat{\gamma}_1=\gamma+\epsilon_1&lt;/script&gt;, &lt;script type=&quot;math/tex&quot;&gt;\hat{\gamma}_2=\gamma+\epsilon_2&lt;/script&gt;&lt;/li&gt;
+  &lt;li&gt;do this every time you run any experiment&lt;/li&gt;
+  &lt;li&gt;take all of this data you have now, fit some kind of regression of &lt;script type=&quot;math/tex&quot;&gt;\hat{\gamma}_1&lt;/script&gt; on &lt;script type=&quot;math/tex&quot;&gt;\hat{\gamma}_2&lt;/script&gt;&lt;/li&gt;
+  &lt;li&gt;use your predicted value of &lt;script type=&quot;math/tex&quot;&gt;\hat{\gamma}_1&lt;/script&gt; given &lt;script type=&quot;math/tex&quot;&gt;\hat{\gamma}_2&lt;/script&gt; from your fitted regression as your best proxy for the true effect size&lt;/li&gt;
+  &lt;li&gt;use this predicted value to inform decisions instead of the raw estimates&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Under the assumption that &lt;script type=&quot;math/tex&quot;&gt;\epsilon_1&lt;/script&gt; and &lt;script type=&quot;math/tex&quot;&gt;\epsilon_2&lt;/script&gt; are independent of each other and of &lt;script type=&quot;math/tex&quot;&gt;\gamma&lt;/script&gt;, then you have
+\begin{equation}
+\mathbb{E}[\hat{\gamma}_1\mid \hat{\gamma}_2] = \mathbb{E}[\gamma+\epsilon_1 \mid \gamma+\epsilon_2] = \mathbb{E}[\gamma\mid \hat{\gamma}_2]
+\end{equation}
+Which is exactly what we’re after.  So if the errors are orthogonal then you can just do some regression to get the conditional expectation of one estimate on the other, which gives you the conditional expectation of the true parameter value given your estimate.  For the most part, this makes a lot of sense.  Some potential issues:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;The error terms &lt;script type=&quot;math/tex&quot;&gt;\epsilon_1, \epsilon_2&lt;/script&gt; can be correlated because of e.g. common time shocks (as in, maybe all effect sizes are just randomly bigger during the summer).  This would cause the &lt;script type=&quot;math/tex&quot;&gt;\epsilon&lt;/script&gt;s to be correlated, and thus this conditional expectation to be more extreme than the truth: &lt;script type=&quot;math/tex&quot;&gt;\lvert\mathbb{E}[\hat{\gamma}_1\mid\hat{\gamma}_2]\rvert &gt; \lvert\mathbb{E}[\gamma\mid\hat{\gamma}_2]\rvert&lt;/script&gt;.&lt;/li&gt;
+  &lt;li&gt;You’re breaking your sample in two, so if your experiment is about market-level dynamics that has weird scaling with size, then the half-size estimates won’t really be what you’re after.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Absent these issues, you can just do this two-sample split and use some estimate of &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[\hat{\gamma}_1\mid\hat{\gamma}_2]&lt;/script&gt; as your best proxy for the true effect &lt;script type=&quot;math/tex&quot;&gt;\gamma&lt;/script&gt;.  So, literally do this 2-sample split procedure for every experiment, and then run some sort of local regression of &lt;script type=&quot;math/tex&quot;&gt;\hat{\gamma}_1&lt;/script&gt; on &lt;script type=&quot;math/tex&quot;&gt;\hat{\gamma}_2&lt;/script&gt;, and use the predicted value from your regression instead of the raw estimates.&lt;/p&gt;
+
+&lt;p&gt;But of course, it’s not that simple…&lt;/p&gt;
+
+&lt;h3 id=&quot;organizational-challenges&quot;&gt;Organizational challenges&lt;/h3&gt;
+&lt;p&gt;In spite of the fairly clear reasons to not use your raw parameter estimate as a proxy for the true parameter value, this is literally what almost everyone does almost all the time.  The fact that even for one of the largest and most sophisticated tech companies in the world, it’s literally the &lt;em&gt;research&lt;/em&gt; group that is just now starting to figure out how to implement this should give you some indication of how widespread this practice is.  Here are some potential reasons for why people use raw parameter estimates:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;This is just what people are taught.  In academia, you generally report your parameter estimates, not some Bayesian posterior mean / some otherwise adjusted thing.  So once people leave grad school, they continue doing this.&lt;/li&gt;
+  &lt;li&gt;It’s not entirely clear how to estimate &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[\hat{\gamma}_1\mid\hat{\gamma}_2]&lt;/script&gt;.
+    &lt;ul&gt;
+      &lt;li&gt;You can do a local regression, but there’s a lot of tuning parameters. How do you pick these?  Or how do you stipulate a reasonable way to pick these?&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Why restrict to just conditioning on &lt;script type=&quot;math/tex&quot;&gt;\hat{\gamma}_2&lt;/script&gt;?  Why not do 
+\begin{equation}
+\mathbb{E}[\hat{\gamma}_1\mid\hat{\gamma}_2, \text{ other stuff}]
+\end{equation}&lt;br /&gt;
+Surely there are other useful features that can be used to get even better proxies of the truth?
+    &lt;ul&gt;
+      &lt;li&gt;Estimates for certain sets of parameters (e.g. marketing-related things) might tend to be more exaggerated, whereas the reverse may be true for others (e.g. website layout).  Should we include features controlling for this?&lt;/li&gt;
+      &lt;li&gt;Or, maybe experiments run during the winter tend to be less biased than those done in the summer?  So maybe we should also condition on season?&lt;/li&gt;
+      &lt;li&gt;Maybe experiments run by engineers have effects that are less exaggerated than those run by product managers.  Should we incorporate this feature?&lt;/li&gt;
+      &lt;li&gt;etc…&lt;/li&gt;
+      &lt;li&gt;And once you incorporate all of these things, how do you pick a method for computing this conditional expectation?  How do you pick tuning parameters?&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;If you’re just one person doing some analyses, then you can maybe come up with something that does pretty ok for now.  But when you’re in charge of designing a general process for how to adjust parameter estimates for a large institution, this problem becomes much harder.  Here’s a speculative list of reasons:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;It’s fairly difficult to ex-ante specify the right way of resolving all of the various uncertainties in implementing some process like this.  You’ll go along and realize you’ve forgotten some edge cases and have to fix stuff as they come up.&lt;/li&gt;
+  &lt;li&gt;Someone whose bonus depends on ‘succeeding’ on some metric is going to be unhappy you’re shrinking their estimate down, and they’ll argue with you that things should be done in some way that benefits them.  So you’re going to have to spend a lot of time managing these conflicts.&lt;/li&gt;
+  &lt;li&gt;If there’s a significant number of people who aren’t happy with the policy, you’re going to have a hard time building the kind of cultural credibility to really establish some system like this.&lt;/li&gt;
+  &lt;li&gt;It might be pretty hard to measure/sell the impact of having improved parameter estimates to whomever is paying you, especially if you’re explicitly making life harder for many people in your organization.&lt;/li&gt;
+  &lt;li&gt;You might create perverse incentives where people will cheat on their experiments because if their estimates end up being bad, they’ll cause your regression to think that their entire group runs bad experiments, and thus anger their entire team / endanger their careers.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;These problems are probably not insurmountable, but they certainly aren’t trivial to solve on an institutional level.  So maybe it’s not so surprising that almost every place just goes with just the straight up raw parameter estimates.  They might be biased, but they’re easy, and often it’s better to be fast and ballpark than slow and exact.&lt;/p&gt;</content><author><name></name></author><summary type="html">People often try and estimate things. For example, people at tech companies tend to run a lot of experiments in order to estimate the impact of various policies (e.g. new website layout) on important-ish things (e.g. user signup rate). The process generally works like this: run your experiment and get some data use your data to build an estimate of the impact of your policy assume that this estimate is your best proxy for the true impact base your decisions on this estimate of the impact (e.g. move to the new website layout if the impact on conversion is sufficiently positive)</summary></entry><entry><title type="html">Poisson regression and Bregman divergence</title><link href="http://localhost:4000/bregman/" rel="alternate" type="text/html" title="Poisson regression and Bregman divergence" /><published>2017-11-13T21:00:00-05:00</published><updated>2017-11-13T21:00:00-05:00</updated><id>http://localhost:4000/bregman</id><content type="html" xml:base="http://localhost:4000/bregman/">&lt;p&gt;Poisson regression is a fairly useful tool for modeling count data.  From the name, you would expect that the data should be Poisson for it to work.  As it turns out, you can actually consistently estimate your parameters even when your data is not Poisson distributed.  I’ll talk about how to arrive at this consistency result by means of a construct called the Bregman divergence.&lt;/p&gt;
+
+&lt;h3 id=&quot;1-what-is-poisson-regression-and-why-does-it-exist&quot;&gt;1. What is Poisson regression and why does it exist&lt;/h3&gt;
+&lt;p&gt;Poisson regression essentially amounts to two assumption: (1) conditional on some &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; variables, your dependent variable &lt;script type=&quot;math/tex&quot;&gt;Y&lt;/script&gt; is distributed Poisson, and (2) the mean of this Poisson is an exponential of some function of &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; (let’s assume linear for now):
+\begin{equation}
+Y\mid x\sim Psn(\lambda_x), \quad \lambda_x = \mathbb{E}[Y\mid x] = \exp(x\cdot\theta^\ast)
+\tag{1}
+\label{psn}
+\end{equation}
+These assumptions gives you a nice concave log likelihood that you can then easily optimize given some data:
+\begin{equation}
+L(\theta) \propto \sum_{i\in\text{data}}\left( -\exp(x_i\cdot\theta) + y_ix_i\cdot\theta\right), \quad 
+\hat{\theta} = \arg\max_{\theta} l(\theta)
+\tag{2}
+\label{pll}
+\end{equation}&lt;/p&gt;
+
+&lt;p&gt;Poisson regression is a convenient thing to do when:&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;Your &lt;script type=&quot;math/tex&quot;&gt;Y&lt;/script&gt; variable takes on nonnegative integer values.&lt;/li&gt;
+  &lt;li&gt;Your &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; variables seems like they should have effect sizes that should be quoted in percentages intead of raw units (e.g. &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; should increase &lt;script type=&quot;math/tex&quot;&gt;Y&lt;/script&gt; by 20%, not 20 units).&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;To be extremely concrete, consider this example:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;script type=&quot;math/tex&quot;&gt;Y&lt;/script&gt; is number of taxi ride requests in an area, &lt;script type=&quot;math/tex&quot;&gt;x_1&lt;/script&gt; is population, and &lt;script type=&quot;math/tex&quot;&gt;x_2\in\{0,1\}&lt;/script&gt; indicates rain&lt;/li&gt;
+  &lt;li&gt;If you do a linear regression &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[Y] = \theta_1 x_1 + \theta_2x_2&lt;/script&gt;, the model assumes that the impact of rain &lt;script type=&quot;math/tex&quot;&gt;\theta_2&lt;/script&gt; is just some constant irrespective of the population size.&lt;/li&gt;
+  &lt;li&gt;If you do a Poisson regression, then  &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[Y] = \exp(\theta_1 x_1 + \theta_2x_2) = \exp(\theta_1x_1)\exp(\theta_2x_2)&lt;/script&gt;, so that &lt;script type=&quot;math/tex&quot;&gt;\theta_2&lt;/script&gt; has an effect on rides that scales with population size.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Of course, there are other ways to get this multiplicative form:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Linear regression on &lt;script type=&quot;math/tex&quot;&gt;\log(Y)&lt;/script&gt;.  But:
+    &lt;ul&gt;
+      &lt;li&gt;You can’t log zeros.&lt;/li&gt;
+      &lt;li&gt;This will get you an estimate of &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[\log(Y)\mid x]&lt;/script&gt;, and in general &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[Y\mid x]\neq\exp(\mathbb{E}[\log(Y)\mid x])&lt;/script&gt;.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Manually specify interaction terms in your linear regressions, e.g. estimate &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[Y] = \theta_1 x_1 + \theta_2x_2 + \theta_3x_1x_2&lt;/script&gt;.  But:
+    &lt;ul&gt;
+      &lt;li&gt;Kind of annoying having to do this a bunch of times.&lt;/li&gt;
+      &lt;li&gt;Hard to estimate a specification more flexible than just “scales linearly with a single variable”.  In particular, if there’s some linear combination of several variables that you think &lt;script type=&quot;math/tex&quot;&gt;x_2&lt;/script&gt; should be proportional to, then your model becomes &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[Y] = \text{stuff}+(\theta_1 x_1 + \theta_3x_3)\theta_2x_2&lt;/script&gt;, which is kind of weird and nonlinear and less trivial to estimate than some kind of regression.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Point is, this exponential function form is often extremely convenient when you’re modeling count data.&lt;/p&gt;
+
+&lt;h3 id=&quot;2-you-dont-actually-need-the-poisson&quot;&gt;2. You don’t actually need the Poisson&lt;/h3&gt;
+&lt;p&gt;We indicated above that Poisson regression is estimated by maximizing the log likelihood.  This is nice, but a little bit worrying, since if you want to actually estimate &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[Y\mid x]&lt;/script&gt; correctly via maximum likelihood, generally you need that your likelihood function is actually correct. Unfortunately, the assumption that &lt;script type=&quot;math/tex&quot;&gt;Y\mid x&lt;/script&gt; is Poisson is unlikely to be even close to true in practice:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;The Poisson distribution is extremely restrictive in that it has literally a single parameter that you can vary (the mean), and the variance must be equal to the mean.&lt;/li&gt;
+  &lt;li&gt;Even if the truth is that your &lt;script type=&quot;math/tex&quot;&gt;Y&lt;/script&gt; is Poisson conditional on some &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; variables, if one of these &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; variables is hidden so that you don’t have data on it, then the resulting distribution of &lt;script type=&quot;math/tex&quot;&gt;Y&lt;/script&gt; conditioned on the &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; variables you do have data on is generally not going to be Poisson.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Thankfully, for Poisson regression, you actually can consistently estimate &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[Y\mid x]&lt;/script&gt; even when &lt;script type=&quot;math/tex&quot;&gt;Y\mid x&lt;/script&gt; is not Poisson, so long as the functional form for this mean is correct. As in, if in fact &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[Y\mid x] = \exp(x\cdot\theta^\ast)&lt;/script&gt; for some &lt;script type=&quot;math/tex&quot;&gt;\theta^\ast&lt;/script&gt;, then you’re totally fine.  Slap whatever error distribution you want on it, doesn’t matter.  Thus, as far as consistency is concerend, you can just think about the mean, which is generally much easier than thinking about the entire distribution.&lt;/p&gt;
+
+&lt;p&gt;There’s a variety of ways to demonstrate this fact, but a super convenient way is by means of this thing called the Bregman divergence, which is in its own right a quite interesting construct.&lt;/p&gt;
+
+&lt;h3 id=&quot;3-bregman-divergence&quot;&gt;3. Bregman divergence&lt;/h3&gt;
+&lt;p&gt;Bregman divergence is a concept introduced in the 60s that’s found some interesting applications in machine learning (like proving consistency of various clustering algorithms, as [1] does).  To generate a Bregman divergence, you first pick some strictly convex function, and then you construct another function that basically measures how convex this first function is.  To be precise, the bregman divergence &lt;script type=&quot;math/tex&quot;&gt;D_{\phi}&lt;/script&gt; associated with a strictly convex function &lt;script type=&quot;math/tex&quot;&gt;\phi&lt;/script&gt; is defined as:
+\begin{equation}
+D_{\phi}(x,y) = \phi(x) - \phi(y) - \nabla\phi(y)\cdot(x-y)
+\tag{3}
+\label{bregman} 
+\end{equation}
+This has a clear interpretation:  &lt;script type=&quot;math/tex&quot;&gt;\phi(y) + \nabla\phi(y)\cdot(x-y)&lt;/script&gt; is the value of the linear approximation to &lt;script type=&quot;math/tex&quot;&gt;\phi&lt;/script&gt;, using the point &lt;script type=&quot;math/tex&quot;&gt;y&lt;/script&gt;, evaluated at the point &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt;.  Thus, &lt;script type=&quot;math/tex&quot;&gt;D_{\phi}(x,y)&lt;/script&gt; measures the gap at the point &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; between the actual function &lt;script type=&quot;math/tex&quot;&gt;\phi&lt;/script&gt; and its linear approximation using the point &lt;script type=&quot;math/tex&quot;&gt;y&lt;/script&gt;.&lt;/p&gt;
+
+&lt;p&gt;The most straightforward example of a Bregman divergence is the &lt;script type=&quot;math/tex&quot;&gt;L_2&lt;/script&gt; distance.  You can derive this by just plugging into the definition:
+\begin{equation}
+\phi(x)= x\cdot x \quad \Rightarrow \quad D_{\phi}(x,y) = (x-y)\cdot(x-y)
+\tag{4}
+\label{l2breg}
+\end{equation}&lt;/p&gt;
+
+&lt;p&gt;Also, here are some properties of Bregman divergences:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;script type=&quot;math/tex&quot;&gt;D_{\phi}(x,y)&lt;/script&gt; is always nonnegative, and 0 only when &lt;script type=&quot;math/tex&quot;&gt;x=y&lt;/script&gt; (because &lt;script type=&quot;math/tex&quot;&gt;\phi&lt;/script&gt; is strictly convex).&lt;/li&gt;
+  &lt;li&gt;&lt;script type=&quot;math/tex&quot;&gt;D_{\phi}(x,y)&lt;/script&gt; is strictly convex in the first argument (because &lt;script type=&quot;math/tex&quot;&gt;\phi&lt;/script&gt; is strictly convex), but not necessarily in the second.&lt;/li&gt;
+  &lt;li&gt;&lt;script type=&quot;math/tex&quot;&gt;D_{\phi}(x,y)&lt;/script&gt; is generally not symmetric.&lt;/li&gt;
+  &lt;li&gt;For any random variable &lt;script type=&quot;math/tex&quot;&gt;X&lt;/script&gt;, the expected bregman divergence is minimized at the mean:
+\begin{equation}
+\arg\min_{y}\mathbb{E}[D_{\phi}(X,y)] = \mathbb{E}[X]
+\tag{5}
+\label{bregmin}
+\end{equation}&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;This last property is what we’ll use to prove Poisson consistency under misspecification, so we’ll pay a bit more attention to it.  It’s notable that this holds for &lt;em&gt;any&lt;/em&gt; Bregman divergence &lt;script type=&quot;math/tex&quot;&gt;D_{\phi}&lt;/script&gt;.  It doesn’t matter what you use, so long as it’s a Bregman divergence, the mean is the minimizer.  The proof of this fact is actually trivial, so I’ll just put it here:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Let &lt;script type=&quot;math/tex&quot;&gt;P&lt;/script&gt; denote the distribution function of &lt;script type=&quot;math/tex&quot;&gt;X&lt;/script&gt;, and &lt;script type=&quot;math/tex&quot;&gt;\mu:=\mathbb{E}[X] = \int dP(x)x&lt;/script&gt; the mean.&lt;/li&gt;
+  &lt;li&gt;It suffices to show that &lt;script type=&quot;math/tex&quot;&gt;\Delta := \mathbb{E}[D_{\phi}(X,y)] - \mathbb{E}[D_{\phi}(X,\mu)] \geq 0&lt;/script&gt; for any &lt;script type=&quot;math/tex&quot;&gt;y&lt;/script&gt;:
+\begin{align}
+\Delta &amp;amp;=  \int dP(x)[(\phi(x)-\phi(y)-\nabla\phi(y)\cdot(x-y)) - (\phi(x)-\phi(\mu)-\nabla\phi(\mu)\cdot(x-\mu))]\newline
+&amp;amp;= \int dP(x)[\phi(\mu)-\phi(y)-\nabla\phi(y)\cdot(x-y) + \nabla\phi(\mu)\cdot(x-\mu)]\newline
+&amp;amp;= \int dP(x)[\phi(\mu)-\phi(y)]-\int dP(x)[\nabla\phi(y)\cdot(x-y)] + \int dP(x)[\nabla\phi(\mu)\cdot(x-\mu)]\newline
+&amp;amp;= \phi(\mu)-\phi(y)-\nabla\phi(y)\cdot(\mu-y) + \nabla\phi(\mu)\cdot(\mu-\mu)\newline
+&amp;amp;= D_{\phi}(\mu, y)\newline
+&amp;amp;\geq 0
+\end{align}&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;So, one immediate implication of this property is that the squared error is minimized by the mean:
+&lt;script type=&quot;math/tex&quot;&gt;(x-y)\cdot(x-y)&lt;/script&gt; is a Bregman divergence, so irrespective of how &lt;script type=&quot;math/tex&quot;&gt;X&lt;/script&gt; is distributed, we have that&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;\arg\min_{y}\mathbb{E}[(X-y)\cdot(X-y)] = \mathbb{E}[X]&lt;/script&gt;
+
+&lt;p&gt;Something similar applies to the Poisson case, as we’ll show below.&lt;/p&gt;
+
+&lt;h3 id=&quot;4-poisson-consistency-without-the-poisson&quot;&gt;4. Poisson consistency without the Poisson&lt;/h3&gt;
+&lt;p&gt;To show that Poisson regression is consistent even when the data is not Poisson, we’ll show that the Poisson log likelihood can be written as a Bregman divergence, from which it follows that the mean will minimize it (and then do a little bit extra stuff).&lt;/p&gt;
+
+&lt;p&gt;Consider &lt;script type=&quot;math/tex&quot;&gt;Y\mid x&lt;/script&gt; for any arbitrary &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt;, and assume it has true distribution &lt;script type=&quot;math/tex&quot;&gt;P(y)&lt;/script&gt; and true mean &lt;script type=&quot;math/tex&quot;&gt;\lambda_x = \mathbb{E}^P[y] = \int dP(y)y&lt;/script&gt;.&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Under the assumption that &lt;script type=&quot;math/tex&quot;&gt;Y\mid x \sim Psn(\lambda_x)&lt;/script&gt;, the negative log-likelihood can be written as 
+\begin{align}
+-l(\lambda, y) &amp;amp;= -y\log(\lambda) +\lambda - \log(y!) \newline
+ &amp;amp; = -y\log(\lambda) + \lambda + y\log(y) -y + g(y)
+\end{align}
+for some &lt;script type=&quot;math/tex&quot;&gt;g(y)&lt;/script&gt; that we don’t care about because the purpose of the log likelihood is to be minimized as a function of &lt;script type=&quot;math/tex&quot;&gt;\lambda&lt;/script&gt;.&lt;/li&gt;
+  &lt;li&gt;Now, observe that if we define &lt;script type=&quot;math/tex&quot;&gt;\phi(x) = x\log(x)&lt;/script&gt;, then &lt;script type=&quot;math/tex&quot;&gt;D_{\phi}(y,\lambda) = y\log(y)-y\log(\lambda) -y + \lambda&lt;/script&gt;&lt;/li&gt;
+  &lt;li&gt;So it follows that &lt;script type=&quot;math/tex&quot;&gt;-l(\lambda, y) = D_{\phi}(y, \lambda) + g(y)&lt;/script&gt;&lt;/li&gt;
+  &lt;li&gt;Thus, maximizing the expected Poisson log likelihood is equivalent to minimizing the expected Bregman divergence:
+\begin{equation}
+\arg\max_{\lambda} \mathbb{E}^P[l(\lambda, Y)] =  \arg\min_{\lambda} \mathbb{E}^P[D_{\phi}(Y, \lambda)] = \lambda_x
+\end{equation}&lt;/li&gt;
+  &lt;li&gt;That is, irrespective of what the true distribution of &lt;script type=&quot;math/tex&quot;&gt;Y\mid x&lt;/script&gt; actually is, if you assume that &lt;script type=&quot;math/tex&quot;&gt;Y\mid x&lt;/script&gt; is Poisson and write down the log likelihood, the minimizer of this will the expected value.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Now, because our model was correctly specified and in fact there is some &lt;script type=&quot;math/tex&quot;&gt;\theta^\ast&lt;/script&gt; for which &lt;script type=&quot;math/tex&quot;&gt;\lambda_x=x\cdot \theta^\ast&lt;/script&gt; for all &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt;, it follows that this &lt;script type=&quot;math/tex&quot;&gt;\theta^\ast&lt;/script&gt; will maximize the log likelihoods of &lt;script type=&quot;math/tex&quot;&gt;Y\mid x&lt;/script&gt; for each &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt;, and therefore maximize the overall Poisson log likelihood.  From here, it follows that as you get more and more data, your empirical distribution of &lt;script type=&quot;math/tex&quot;&gt;(x,y)&lt;/script&gt; will look more and more like the true one, so in the limit you’ll recover the true &lt;script type=&quot;math/tex&quot;&gt;\theta^\ast&lt;/script&gt;, and thus consistency is established.  (Note: to actually write down a proof, there’s some amount of technical stuff you’ll have to do involving uniform convergence and continuity of argmins and uniqueness of &lt;script type=&quot;math/tex&quot;&gt;\theta^\ast&lt;/script&gt; and what else have you.  But honestly it’s been a while since grad school, and the intuition is roughly just this, so whatever.)&lt;/p&gt;
+
+&lt;p&gt;And we’re done.  You can now go do Poisson regression in peace.&lt;/p&gt;
+
+&lt;p&gt;A few more notable points:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;This result is just for consistency.  If you want confidence intervals then the ones you get out of Poisson regression are going to be incorrect if your distribution is not actually Poisson.&lt;/li&gt;
+  &lt;li&gt;The linear form we assumed for &lt;script type=&quot;math/tex&quot;&gt;\log(\mathbb{E}[Y\mid x])&lt;/script&gt; actually doesn’t play any role in this result.  Though, if you use something nonlinear, it’s worth bearing in mind how this would impact the concavity of your log likelihood.&lt;/li&gt;
+  &lt;li&gt;It’s important to have the functional form of &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[Y\mid x]&lt;/script&gt; correctly specified in order for the consistency result to hold.  While this is a less demanding condition relative to getting the entire distribution right, it’s still kinda hard.&lt;/li&gt;
+  &lt;li&gt;This result says nothing about rate of convergence.  If the true distribution is actually Poisson, then you can’t do better than Poisson regression (since in that case it’s MLE), but otherwise you can gain something by knowing more information about the distribution.  So maybe think about that if your data is extremely non-Poisson.&lt;/li&gt;
+  &lt;li&gt;It turns out that there’s quite a lot of distributions (the exponential family) whose log likelihoods can be written as Bregman divergences, and as a result MLE is actually mean consistent under an assumption that the distribution is something from this family.  For example,  the Gaussian is member of this family, and the &lt;script type=&quot;math/tex&quot;&gt;L_2&lt;/script&gt; distance is the Bregman divergence corresponding to the Gaussian distribution (which makes sense, since linear regression is just MLE under the assumption of Gaussian errors).  The paper in the reference has a more general treatment of this correspondence between exponential families and Bregman divergence.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;references&quot;&gt;References&lt;/h3&gt;
+&lt;p&gt;[1]. &lt;a href=&quot;http://www.jmlr.org/papers/volume6/banerjee05b/banerjee05b.pdf&quot;&gt;“Clustering with Bregman Divergences”, JMLR 2005&lt;/a&gt;&lt;/p&gt;</content><author><name></name></author><summary type="html">Poisson regression is a fairly useful tool for modeling count data. From the name, you would expect that the data should be Poisson for it to work. As it turns out, you can actually consistently estimate your parameters even when your data is not Poisson distributed. I’ll talk about how to arrive at this consistency result by means of a construct called the Bregman divergence.</summary></entry><entry><title type="html">Noise-contrastive estimation</title><link href="http://localhost:4000/nce/" rel="alternate" type="text/html" title="Noise-contrastive estimation" /><published>2017-11-03T22:00:00-04:00</published><updated>2017-11-03T22:00:00-04:00</updated><id>http://localhost:4000/nce</id><content type="html" xml:base="http://localhost:4000/nce/">&lt;p&gt;Interesting paper: &lt;a href=&quot;https://michaelgutmann.github.io/assets/papers/Gutmann2012a.pdf&quot;&gt;Noise-Contrastive Estimation of Unnormalized Statistical Models, with Applications to Natural Image Statistics&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Roughly, the paper says that:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Suppose you want to estimate some probability distribution.&lt;/li&gt;
+  &lt;li&gt;You can do maximum likelihood or some other standard thing.&lt;/li&gt;
+  &lt;li&gt;Or, you can do this thing called noise-contrastive estimation (NCE):
+    &lt;ol&gt;
+      &lt;li&gt;You generate some fake data according to (almost) any distribution.&lt;/li&gt;
+      &lt;li&gt;You estimate a logistic regression to distinguish the real data from the fake data.&lt;/li&gt;
+    &lt;/ol&gt;
+  &lt;/li&gt;
+  &lt;li&gt;This estimate effectively gives you the probability distribution you wanted.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;In this post I’ll (1) go over why this is useful, (2) provide some intuition on how it works, (3) walk through a simple example implementation in python, (4) cover some more technical details, and (5) briefly touch how this applies to estimating conditional distributions.&lt;/p&gt;
+
+&lt;h3 id=&quot;1-why-this-is-useful&quot;&gt;1. Why this is useful&lt;/h3&gt;
+&lt;ol&gt;
+  &lt;li&gt;Often, you’ll estimate a probability distribution &lt;script type=&quot;math/tex&quot;&gt;\mathbb{P}&lt;/script&gt; defined on some set &lt;script type=&quot;math/tex&quot;&gt;W&lt;/script&gt; by trying to learn an un-normalized quantity &lt;script type=&quot;math/tex&quot;&gt;Q(w)&lt;/script&gt; for each &lt;script type=&quot;math/tex&quot;&gt;w\in W&lt;/script&gt;, and then normalizing it to produce a candidate distribution that actually sums to 1:
+\begin{equation}
+P(w) = \frac{Q(w)}{\sum_{v\in W}Q(v)}
+\end{equation}
+and then checking if this &lt;script type=&quot;math/tex&quot;&gt;P&lt;/script&gt; looks kind of similar to the data you have (which is generated from the real distribution &lt;script type=&quot;math/tex&quot;&gt;\mathbb{P}&lt;/script&gt;)&lt;/li&gt;
+  &lt;li&gt;So, every time you update your &lt;script type=&quot;math/tex&quot;&gt;Q&lt;/script&gt;, you have to do &lt;script type=&quot;math/tex&quot;&gt;\sum_{v\in W}Q(v)&lt;/script&gt; in order to compute this &lt;script type=&quot;math/tex&quot;&gt;P&lt;/script&gt; so you can see how good it is (and also probaby to compute gradients so you can figure out how to make your &lt;script type=&quot;math/tex&quot;&gt;Q&lt;/script&gt; better next time).&lt;/li&gt;
+  &lt;li&gt;You’ll probably have to try out a bunch of different &lt;script type=&quot;math/tex&quot;&gt;Q&lt;/script&gt;s to get something that looks pretty good.&lt;/li&gt;
+  &lt;li&gt;This sum is hard if &lt;script type=&quot;math/tex&quot;&gt;W&lt;/script&gt; is big, so you should try to avoid doing it.&lt;/li&gt;
+  &lt;li&gt;NCE is a fairly elegant way to estimate your un-normalized &lt;script type=&quot;math/tex&quot;&gt;Q&lt;/script&gt; without having to do this big sum.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h4 id=&quot;for-concreteness-consider-this-example&quot;&gt;For concreteness, consider this example:&lt;/h4&gt;
+&lt;ul&gt;
+  &lt;li&gt;Suppose you’re trying to estimate how often your friend says various words.&lt;/li&gt;
+  &lt;li&gt;Define this as a distribution &lt;script type=&quot;math/tex&quot;&gt;\mathbb{P}&lt;/script&gt; over the set of all words &lt;script type=&quot;math/tex&quot;&gt;W&lt;/script&gt;.&lt;/li&gt;
+  &lt;li&gt;You have some data generated from this distribution (i.e. transcripts of what your friend said over the past week).&lt;/li&gt;
+  &lt;li&gt;You think that maybe your friend prefers words that are:
+    &lt;ul&gt;
+      &lt;li&gt;&lt;script type=&quot;math/tex&quot;&gt;\leq 5&lt;/script&gt; letters long,&lt;/li&gt;
+      &lt;li&gt;or end with the letter ‘y’&lt;/li&gt;
+      &lt;li&gt;or have at least 3 repeated leters&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Thus, you represent each word &lt;script type=&quot;math/tex&quot;&gt;w\in W&lt;/script&gt; as a vector of features &lt;script type=&quot;math/tex&quot;&gt;x_w&lt;/script&gt; and estimate the &lt;script type=&quot;math/tex&quot;&gt;\mathbb{P}&lt;/script&gt; as a function of the features (so e.g. ‘lullaby’ would get turned into the vector &lt;script type=&quot;math/tex&quot;&gt;(0,1,1)&lt;/script&gt;).&lt;/li&gt;
+  &lt;li&gt;You specify a softmax model, so that each feature in your feature vector &lt;script type=&quot;math/tex&quot;&gt;x_w&lt;/script&gt; has some effect on usage probabilities, encapsulated by the vector &lt;script type=&quot;math/tex&quot;&gt;\theta&lt;/script&gt; (which is the same length as &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt;), and you assume there is some true &lt;script type=&quot;math/tex&quot;&gt;\theta^\ast&lt;/script&gt; for which your model of &lt;script type=&quot;math/tex&quot;&gt;\mathbb{P}&lt;/script&gt; matches the real thing
+\begin{equation}
+P(w|\theta) = \frac{\exp(x_w\cdot\theta)}{\sum_{v\in W}\exp(x_{v}\cdot\theta)},  \qquad P(w|\theta^\ast) = \mathbb{P}(w) 
+\end{equation}&lt;/li&gt;
+  &lt;li&gt;You just need to estimate &lt;script type=&quot;math/tex&quot;&gt;\theta^\ast&lt;/script&gt; to figure out what &lt;script type=&quot;math/tex&quot;&gt;\mathbb{P}&lt;/script&gt; is, so go ahead and write down your log likelihood function and optimize this over your data via gradient descent or whatever:
+\begin{equation}
+\arg\min_{\theta} \left[\frac{\sum_{i=1}^N x_{w_i}\cdot\theta}{N} - \log\left(\sum_{v\in W}\exp(x_{v}\cdot\theta)\right)\right]
+\end{equation}&lt;/li&gt;
+  &lt;li&gt;But:
+    &lt;ul&gt;
+      &lt;li&gt;In order to compute this log likelihood, you’ll need to compute &lt;script type=&quot;math/tex&quot;&gt;\sum_{v\in W}\exp(x_{v}\cdot\theta)&lt;/script&gt;.&lt;/li&gt;
+      &lt;li&gt;There are a lot of words, so this sum is very time consuming.&lt;/li&gt;
+      &lt;li&gt;Gradient descent or whatever takes many steps, so you have to do this sum many times.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;:(&lt;/li&gt;
+  &lt;li&gt;If only there were some way to estimate &lt;script type=&quot;math/tex&quot;&gt;\theta^\ast&lt;/script&gt; without having to do this sum!&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;2-intuition&quot;&gt;2. Intuition&lt;/h3&gt;
+&lt;p&gt;The intution is really quite straightforward, and doesn’t require any knowledge of how this method actually works beyond the brief 2-sentence description I gave in the intro.&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Let &lt;script type=&quot;math/tex&quot;&gt;\mathbb{P}^r&lt;/script&gt; be the real distribution that you want to estimate.&lt;/li&gt;
+  &lt;li&gt;Let &lt;script type=&quot;math/tex&quot;&gt;\mathbb{P}^f&lt;/script&gt; be the fake distribution you use to generate the fake data.&lt;/li&gt;
+  &lt;li&gt;Let &lt;script type=&quot;math/tex&quot;&gt;W&lt;/script&gt; be the support of both of these distributions.&lt;/li&gt;
+  &lt;li&gt;Assume you have a lot of real data generated by &lt;script type=&quot;math/tex&quot;&gt;\mathbb{P}^r&lt;/script&gt;, and generate an equal amount of fake data from &lt;script type=&quot;math/tex&quot;&gt;\mathbb{P}^f&lt;/script&gt;.&lt;/li&gt;
+  &lt;li&gt;Then, if you randomly pick some observation from your combined fake+real data, then the posterior probability that the observation is real, conditional on the observation being &lt;script type=&quot;math/tex&quot;&gt;w&lt;/script&gt;, is going to be roughly:
+\begin{equation}
+p(real\mid w) = \frac{\mathbb{P}^r (w) } {\mathbb{P}^r(w)+\mathbb{P}^f(w)}
+\end{equation}&lt;/li&gt;
+  &lt;li&gt;You train your logistic regression to distinguish real from fake data.  Since you have a lot of data, it should be able to figure out what 
+&lt;script type=&quot;math/tex&quot;&gt;p(real\mid w)&lt;/script&gt; is for each &lt;script type=&quot;math/tex&quot;&gt;w&lt;/script&gt;.&lt;/li&gt;
+  &lt;li&gt;You know &lt;script type=&quot;math/tex&quot;&gt;\mathbb{P}^f(w)&lt;/script&gt; since this is some distribution you made up.&lt;/li&gt;
+  &lt;li&gt;So you can now back out 
+\begin{equation}
+\mathbb{P}^r(w) = \frac{p(real\mid w)}{1-p(real\mid w)}\mathbb{P}^f(w)
+\tag{1}
+\label{eq:backout}
+\end{equation}&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;When I first read this paper I was surprised that you could pick &lt;em&gt;literally any distribution&lt;/em&gt;(almost) and have this work.  It turns out, roughly what’s going on is that you’re using this fake distribution as a basis for comparison, learning how the real distribution compares to the fake one, and then using this to back out the real distribution.&lt;/p&gt;
+
+&lt;h3 id=&quot;3-example-implementation&quot;&gt;3. Example implementation&lt;/h3&gt;
+&lt;p&gt;I’ve written a basic implementation of NCE applied to the example described above.  &lt;a href=&quot;https://github.com/j-mark-hou/nce_basic/blob/master/nce_basic.ipynb&quot;&gt;You can look at the notebook / download and run it here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;For less trivial examples, you can look in the paper.&lt;/p&gt;
+
+&lt;p&gt;What this example does:&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;Generate a set &lt;script type=&quot;math/tex&quot;&gt;W&lt;/script&gt; of 10000 words
+    &lt;ul&gt;
+      &lt;li&gt;For each &lt;script type=&quot;math/tex&quot;&gt;w\in W&lt;/script&gt;, generating a feature vector &lt;script type=&quot;math/tex&quot;&gt;x_w \in \{0,1\}^3&lt;/script&gt; (indicating whether or not &lt;script type=&quot;math/tex&quot;&gt;w&lt;/script&gt; has or does not have each of the 3 features listed in the example above).&lt;/li&gt;
+      &lt;li&gt;Generate the real probability distribution, where the probability of each word is a logistic function of the 3 features multiplied by some coefficients &lt;script type=&quot;math/tex&quot;&gt;\theta^\ast&lt;/script&gt;:
+\begin{equation}
+ \mathbb{P}^r(w) = \frac{\exp(x_w\cdot \theta^\ast)}{\sum_{v\in W}\exp(x_v\cdot\theta^\ast)} 
+ \tag{2}
+ \label{eq:softmax_ex}
+\end{equation}&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Randomly generate 20000 real observations from &lt;script type=&quot;math/tex&quot;&gt;\mathbb{P}^r&lt;/script&gt; that I will model as this softmax.&lt;/li&gt;
+  &lt;li&gt;Randomly generate 20000 fake observations from a fake distribution &lt;script type=&quot;math/tex&quot;&gt;\mathbb{P}^f&lt;/script&gt; (uniform over the 10000 words).&lt;/li&gt;
+  &lt;li&gt;Join the real and fake data into a single dataset.&lt;/li&gt;
+  &lt;li&gt;Tun logistic regression on this combined data to predict if an observation is real/fake using the where I model the probability of &lt;script type=&quot;math/tex&quot;&gt;w&lt;/script&gt; being real as a function of the feature vector &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; and a constant
+&lt;script type=&quot;math/tex&quot;&gt;p(real\mid w) = 1/\left(1 + \exp(-(x_w\cdot\theta+c))\right)&lt;/script&gt;&lt;/li&gt;
+  &lt;li&gt;Compare the estimated coefficients &lt;script type=&quot;math/tex&quot;&gt;\hat{\theta}&lt;/script&gt; with the true ones &lt;script type=&quot;math/tex&quot;&gt;\theta^\ast&lt;/script&gt; (they’re pretty close).&lt;/li&gt;
+  &lt;li&gt;For each word, use the estimated logistic regression to compute &lt;script type=&quot;math/tex&quot;&gt;p(real\mid w)&lt;/script&gt;, and use that to back out the estimated value of &lt;script type=&quot;math/tex&quot;&gt;\mathbb{P}^r(w)&lt;/script&gt; using equation \eqref{eq:backout}.
+\begin{equation}
+\mathbb{P}^r(w) = \frac{p(real\mid w)}{1-p(real\mid w)}\mathbb{P}^f(w)
+\end{equation}&lt;/li&gt;
+  &lt;li&gt;Compare the estimated values of &lt;script type=&quot;math/tex&quot;&gt;\mathbb{P}^r(w)&lt;/script&gt; to the real ones (they’re pretty close).&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;A few notes about the implementation:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Once you have &lt;script type=&quot;math/tex&quot;&gt;\hat{\theta}&lt;/script&gt;, you can just as well plug this directly into equation \eqref{eq:softmax_ex} in place of &lt;script type=&quot;math/tex&quot;&gt;\theta^\ast&lt;/script&gt; and compute your estimates of &lt;script type=&quot;math/tex&quot;&gt;\mathbb{P}^r(w)&lt;/script&gt; that way.  this won’t give the same answer (as doing this explicitly normalizes the estimated probabilities where the method used in the notebook does not), but it’ll be close.&lt;/li&gt;
+  &lt;li&gt;The implementation contains a parameter &lt;script type=&quot;math/tex&quot;&gt;\nu&lt;/script&gt;, which controls the ratio of how many fake observations to generate for each real observation.  If this is set to something other than 1, then the RHS of \eqref{eq:backout} needs to be multiplied by &lt;script type=&quot;math/tex&quot;&gt;\nu&lt;/script&gt;.  As a result, the implementation in the notebook of \eqref{eq:backout} contains an extra &lt;script type=&quot;math/tex&quot;&gt;\nu&lt;/script&gt; term.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;4-more-details&quot;&gt;4. More Details&lt;/h3&gt;
+&lt;p&gt;To be precise, NCE says you can do either of these things&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;MLE estimation of a distribution parameterized by &lt;script type=&quot;math/tex&quot;&gt;\theta&lt;/script&gt; on real data, and&lt;/li&gt;
+  &lt;li&gt;Logistic regression on real+fake data parameterized by &lt;script type=&quot;math/tex&quot;&gt;\theta&lt;/script&gt; plus a constant term.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;And the resulting estimate of &lt;script type=&quot;math/tex&quot;&gt;\theta&lt;/script&gt; that we get will be the same asymptotically.  That is, if we parameterize our model of the true distribution as&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;P(w\mid \theta) = \frac{Q(w\mid\theta)}{\sum_{v\in W}Q(v\mid\theta)}&lt;/script&gt;
+
+&lt;p&gt;and we let &lt;script type=&quot;math/tex&quot;&gt;X_r&lt;/script&gt; and &lt;script type=&quot;math/tex&quot;&gt;X_f&lt;/script&gt; denote the real and fake data respectively, then we have&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;\left[\arg\max_{\theta} \left(\sum_{w\in X_r}\log P(w\mid\theta)\right)\right]  
+\approx
+\left[
+    \arg\max_{\theta,c} \left(\sum_{w\in X_r}\log\left(\frac{1}{1+\exp(-\log Q(w\mid\theta)-c)}\right) \\
+    \qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad
+    + \sum_{w\in X_f}\log\left(\frac{1}{1+\exp(\log Q(w\mid\theta)+c)}\right)\right)
+\right]&lt;/script&gt;
+
+&lt;p&gt;So that we can work with the right side problem because it allows us to just with the un-normalized &lt;script type=&quot;math/tex&quot;&gt;Q&lt;/script&gt; instead of the normalized &lt;script type=&quot;math/tex&quot;&gt;P&lt;/script&gt;.&lt;/p&gt;
+
+&lt;p&gt;Several notable things about NCE:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;NCE works pretty much whenever maximum likelihood works.  The conditions for identification / consistency / asymptotic normality are quite weak, and look very similar to those for MLE.&lt;/li&gt;
+  &lt;li&gt;In order for NCE to work, the fake distribution must include the support of the real distribution.  You can see this from \eqref{eq:backout}: clearly if &lt;script type=&quot;math/tex&quot;&gt;\mathbb{P}^f(w)=0&lt;/script&gt;, then you’re not going to be able to back out &lt;script type=&quot;math/tex&quot;&gt;\mathbb{P}^r(w)&lt;/script&gt;.&lt;/li&gt;
+  &lt;li&gt;The further &lt;script type=&quot;math/tex&quot;&gt;\mathbb{P}^f(w)&lt;/script&gt; is from &lt;script type=&quot;math/tex&quot;&gt;\mathbb{P}^r(w)&lt;/script&gt;, the more difficult it gets to accurately estimate &lt;script type=&quot;math/tex&quot;&gt;\mathbb{P}^r(w)&lt;/script&gt;.  Intuitively, if there’s a large gap between these two, then your logistic regression isn’t really incentivized to get this difference exactly right.  So, try and have a fake distribution that resembles the real one (e.g. in our example above, it might be reasonable to use the overall occurrence of words on Wikipedia as the fake distribution).&lt;/li&gt;
+  &lt;li&gt;The more fake observations you generate relative to real observations, the more accurate your estimate becomes.  In the limit, it becomes as accurate as MLE!  Of course, this comes at the cost of increased computational burden, which is why we didn’t like MLE in the first place.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;5-conditional-distributions&quot;&gt;5. Conditional distributions&lt;/h3&gt;
+&lt;ul&gt;
+  &lt;li&gt;Estimating a single distribution is nice, but…&lt;/li&gt;
+  &lt;li&gt;Typically, what we care about is actually estimating distributions conditional on some context.  Examples:
+    &lt;ul&gt;
+      &lt;li&gt;Predicting the next word in a sentence conditional on the last few words.&lt;/li&gt;
+      &lt;li&gt;Predicting in which geographical region the next taxi ride request is going to occur conditional on recent history of rides.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;This is a problem, because NCE introduces a normalizing parameter &lt;script type=&quot;math/tex&quot;&gt;c&lt;/script&gt; in additional to the original &lt;script type=&quot;math/tex&quot;&gt;\theta&lt;/script&gt; parameters of the likelihood.&lt;/li&gt;
+  &lt;li&gt;Typically, contexts are not often repeated in a data set.&lt;/li&gt;
+  &lt;li&gt;This causes the number of parameters in your model to grow about as quickly as data size, which makes NCE infeasible.&lt;/li&gt;
+  &lt;li&gt;In spite of this, NCE finds usage in some fairly high-profile machine learning applications, e.g. word2vec. &lt;a href=&quot;http://papers.nips.cc/paper/5021-distributed-representations-of-words-and-phrases-and-their-compositionality.pdf&quot;&gt;See section 2.2 of this paper&lt;/a&gt;
+    &lt;ul&gt;
+      &lt;li&gt;In that implementation, the normalizing parameter &lt;script type=&quot;math/tex&quot;&gt;c&lt;/script&gt; appears to be set just uniformly to 1 for all contexts (&lt;a href=&quot;https://www.cs.toronto.edu/~amnih/papers/ncelm.pdf&quot;&gt;see this paper&lt;/a&gt;), which seems like it just corresponds to fitting a normalized probability model.
+        &lt;ul&gt;
+          &lt;li&gt;These neural network models have a lot of parameters, so this is ok.&lt;/li&gt;
+          &lt;li&gt;But why do NCE? Why not just straight up learn your normalized model?&lt;/li&gt;
+          &lt;li&gt;I guess the probabilities are not forced to uniformly sum to 1 for all parameter values, so this is some way of coaxing the model to eventually be normalized as we update.&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+      &lt;li&gt;Furthermore, the actual implementation of word2vec uses a simplified version of NCE called ‘negative sampling’ that doesn’t have the nice theoretical properties of nce.
+        &lt;ul&gt;
+          &lt;li&gt;In the case of learning word embeddings, you’re less interested in consistency and more interested in whether your objective function can generate useful embeddings, so you’re happy to do something a bit ad-hoc so long as it works.&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;At some point in the future I’ll probably look into this in more detail.&lt;/li&gt;
+&lt;/ul&gt;</content><author><name></name></author><summary type="html">Interesting paper: Noise-Contrastive Estimation of Unnormalized Statistical Models, with Applications to Natural Image Statistics</summary></entry></feed>

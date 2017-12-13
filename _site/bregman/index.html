@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Poisson regression and Bregman divergence</title>
+  <meta name="description" content="Poisson regression is a fairly useful tool for modeling count data. From the name, you would expect that the data should be Poisson for it to work. As it tur...">
+
+  <link rel="stylesheet" href="/assets/main.css">
+  <link rel="canonical" href="http://localhost:4000/bregman/">
+  <link rel="alternate" type="application/rss+xml" title="J. Mark Hou" href="/feed.xml">
+  
+  
+</head>
+
+
+  <body>
+
+    <header class="site-header" role="banner">
+
+  <div class="wrapper">
+    
+    
+    <a class="site-title" href="/">J. Mark Hou</a>
+  
+    
+      <nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+              <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+              <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger">
+          
+            
+            
+          
+            
+            
+            <a class="page-link" href="/about/">About</a>
+            
+          
+            
+            
+          
+            
+            
+          
+            
+            
+          
+        </div>
+      </nav>
+    
+  </div>
+</header>
+
+
+    <main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title" itemprop="name headline">Poisson regression and Bregman divergence</h1>
+    <p class="post-meta">
+      <time datetime="2017-11-13T21:00:00-05:00" itemprop="datePublished">
+        
+        Nov 13, 2017
+      </time>
+      </p>
+  </header>
+
+  <div class="post-content" itemprop="articleBody">
+    <p>Poisson regression is a fairly useful tool for modeling count data.  From the name, you would expect that the data should be Poisson for it to work.  As it turns out, you can actually consistently estimate your parameters even when your data is not Poisson distributed.  I’ll talk about how to arrive at this consistency result by means of a construct called the Bregman divergence.</p>
+
+<h3 id="1-what-is-poisson-regression-and-why-does-it-exist">1. What is Poisson regression and why does it exist</h3>
+<p>Poisson regression essentially amounts to two assumption: (1) conditional on some <script type="math/tex">x</script> variables, your dependent variable <script type="math/tex">Y</script> is distributed Poisson, and (2) the mean of this Poisson is an exponential of some function of <script type="math/tex">x</script> (let’s assume linear for now):
+\begin{equation}
+Y\mid x\sim Psn(\lambda_x), \quad \lambda_x = \mathbb{E}[Y\mid x] = \exp(x\cdot\theta^\ast)
+\tag{1}
+\label{psn}
+\end{equation}
+These assumptions gives you a nice concave log likelihood that you can then easily optimize given some data:
+\begin{equation}
+L(\theta) \propto \sum_{i\in\text{data}}\left( -\exp(x_i\cdot\theta) + y_ix_i\cdot\theta\right), \quad 
+\hat{\theta} = \arg\max_{\theta} l(\theta)
+\tag{2}
+\label{pll}
+\end{equation}</p>
+
+<p>Poisson regression is a convenient thing to do when:</p>
+<ol>
+  <li>Your <script type="math/tex">Y</script> variable takes on nonnegative integer values.</li>
+  <li>Your <script type="math/tex">x</script> variables seems like they should have effect sizes that should be quoted in percentages intead of raw units (e.g. <script type="math/tex">x</script> should increase <script type="math/tex">Y</script> by 20%, not 20 units).</li>
+</ol>
+
+<p>To be extremely concrete, consider this example:</p>
+<ul>
+  <li><script type="math/tex">Y</script> is number of taxi ride requests in an area, <script type="math/tex">x_1</script> is population, and <script type="math/tex">x_2\in\{0,1\}</script> indicates rain</li>
+  <li>If you do a linear regression <script type="math/tex">\mathbb{E}[Y] = \theta_1 x_1 + \theta_2x_2</script>, the model assumes that the impact of rain <script type="math/tex">\theta_2</script> is just some constant irrespective of the population size.</li>
+  <li>If you do a Poisson regression, then  <script type="math/tex">\mathbb{E}[Y] = \exp(\theta_1 x_1 + \theta_2x_2) = \exp(\theta_1x_1)\exp(\theta_2x_2)</script>, so that <script type="math/tex">\theta_2</script> has an effect on rides that scales with population size.</li>
+</ul>
+
+<p>Of course, there are other ways to get this multiplicative form:</p>
+<ul>
+  <li>Linear regression on <script type="math/tex">\log(Y)</script>.  But:
+    <ul>
+      <li>You can’t log zeros.</li>
+      <li>This will get you an estimate of <script type="math/tex">\mathbb{E}[\log(Y)\mid x]</script>, and in general <script type="math/tex">\mathbb{E}[Y\mid x]\neq\exp(\mathbb{E}[\log(Y)\mid x])</script>.</li>
+    </ul>
+  </li>
+  <li>Manually specify interaction terms in your linear regressions, e.g. estimate <script type="math/tex">\mathbb{E}[Y] = \theta_1 x_1 + \theta_2x_2 + \theta_3x_1x_2</script>.  But:
+    <ul>
+      <li>Kind of annoying having to do this a bunch of times.</li>
+      <li>Hard to estimate a specification more flexible than just “scales linearly with a single variable”.  In particular, if there’s some linear combination of several variables that you think <script type="math/tex">x_2</script> should be proportional to, then your model becomes <script type="math/tex">\mathbb{E}[Y] = \text{stuff}+(\theta_1 x_1 + \theta_3x_3)\theta_2x_2</script>, which is kind of weird and nonlinear and less trivial to estimate than some kind of regression.</li>
+    </ul>
+  </li>
+</ul>
+
+<p>Point is, this exponential function form is often extremely convenient when you’re modeling count data.</p>
+
+<h3 id="2-you-dont-actually-need-the-poisson">2. You don’t actually need the Poisson</h3>
+<p>We indicated above that Poisson regression is estimated by maximizing the log likelihood.  This is nice, but a little bit worrying, since if you want to actually estimate <script type="math/tex">\mathbb{E}[Y\mid x]</script> correctly via maximum likelihood, generally you need that your likelihood function is actually correct. Unfortunately, the assumption that <script type="math/tex">Y\mid x</script> is Poisson is unlikely to be even close to true in practice:</p>
+<ul>
+  <li>The Poisson distribution is extremely restrictive in that it has literally a single parameter that you can vary (the mean), and the variance must be equal to the mean.</li>
+  <li>Even if the truth is that your <script type="math/tex">Y</script> is Poisson conditional on some <script type="math/tex">x</script> variables, if one of these <script type="math/tex">x</script> variables is hidden so that you don’t have data on it, then the resulting distribution of <script type="math/tex">Y</script> conditioned on the <script type="math/tex">x</script> variables you do have data on is generally not going to be Poisson.</li>
+</ul>
+
+<p>Thankfully, for Poisson regression, you actually can consistently estimate <script type="math/tex">\mathbb{E}[Y\mid x]</script> even when <script type="math/tex">Y\mid x</script> is not Poisson, so long as the functional form for this mean is correct. As in, if in fact <script type="math/tex">\mathbb{E}[Y\mid x] = \exp(x\cdot\theta^\ast)</script> for some <script type="math/tex">\theta^\ast</script>, then you’re totally fine.  Slap whatever error distribution you want on it, doesn’t matter.  Thus, as far as consistency is concerend, you can just think about the mean, which is generally much easier than thinking about the entire distribution.</p>
+
+<p>There’s a variety of ways to demonstrate this fact, but a super convenient way is by means of this thing called the Bregman divergence, which is in its own right a quite interesting construct.</p>
+
+<h3 id="3-bregman-divergence">3. Bregman divergence</h3>
+<p>Bregman divergence is a concept introduced in the 60s that’s found some interesting applications in machine learning (like proving consistency of various clustering algorithms, as [1] does).  To generate a Bregman divergence, you first pick some strictly convex function, and then you construct another function that basically measures how convex this first function is.  To be precise, the bregman divergence <script type="math/tex">D_{\phi}</script> associated with a strictly convex function <script type="math/tex">\phi</script> is defined as:
+\begin{equation}
+D_{\phi}(x,y) = \phi(x) - \phi(y) - \nabla\phi(y)\cdot(x-y)
+\tag{3}
+\label{bregman} 
+\end{equation}
+This has a clear interpretation:  <script type="math/tex">\phi(y) + \nabla\phi(y)\cdot(x-y)</script> is the value of the linear approximation to <script type="math/tex">\phi</script>, using the point <script type="math/tex">y</script>, evaluated at the point <script type="math/tex">x</script>.  Thus, <script type="math/tex">D_{\phi}(x,y)</script> measures the gap at the point <script type="math/tex">x</script> between the actual function <script type="math/tex">\phi</script> and its linear approximation using the point <script type="math/tex">y</script>.</p>
+
+<p>The most straightforward example of a Bregman divergence is the <script type="math/tex">L_2</script> distance.  You can derive this by just plugging into the definition:
+\begin{equation}
+\phi(x)= x\cdot x \quad \Rightarrow \quad D_{\phi}(x,y) = (x-y)\cdot(x-y)
+\tag{4}
+\label{l2breg}
+\end{equation}</p>
+
+<p>Also, here are some properties of Bregman divergences:</p>
+<ul>
+  <li><script type="math/tex">D_{\phi}(x,y)</script> is always nonnegative, and 0 only when <script type="math/tex">x=y</script> (because <script type="math/tex">\phi</script> is strictly convex).</li>
+  <li><script type="math/tex">D_{\phi}(x,y)</script> is strictly convex in the first argument (because <script type="math/tex">\phi</script> is strictly convex), but not necessarily in the second.</li>
+  <li><script type="math/tex">D_{\phi}(x,y)</script> is generally not symmetric.</li>
+  <li>For any random variable <script type="math/tex">X</script>, the expected bregman divergence is minimized at the mean:
+\begin{equation}
+\arg\min_{y}\mathbb{E}[D_{\phi}(X,y)] = \mathbb{E}[X]
+\tag{5}
+\label{bregmin}
+\end{equation}</li>
+</ul>
+
+<p>This last property is what we’ll use to prove Poisson consistency under misspecification, so we’ll pay a bit more attention to it.  It’s notable that this holds for <em>any</em> Bregman divergence <script type="math/tex">D_{\phi}</script>.  It doesn’t matter what you use, so long as it’s a Bregman divergence, the mean is the minimizer.  The proof of this fact is actually trivial, so I’ll just put it here:</p>
+<ul>
+  <li>Let <script type="math/tex">P</script> denote the distribution function of <script type="math/tex">X</script>, and <script type="math/tex">\mu:=\mathbb{E}[X] = \int dP(x)x</script> the mean.</li>
+  <li>It suffices to show that <script type="math/tex">\Delta := \mathbb{E}[D_{\phi}(X,y)] - \mathbb{E}[D_{\phi}(X,\mu)] \geq 0</script> for any <script type="math/tex">y</script>:
+\begin{align}
+\Delta &amp;=  \int dP(x)[(\phi(x)-\phi(y)-\nabla\phi(y)\cdot(x-y)) - (\phi(x)-\phi(\mu)-\nabla\phi(\mu)\cdot(x-\mu))]\newline
+&amp;= \int dP(x)[\phi(\mu)-\phi(y)-\nabla\phi(y)\cdot(x-y) + \nabla\phi(\mu)\cdot(x-\mu)]\newline
+&amp;= \int dP(x)[\phi(\mu)-\phi(y)]-\int dP(x)[\nabla\phi(y)\cdot(x-y)] + \int dP(x)[\nabla\phi(\mu)\cdot(x-\mu)]\newline
+&amp;= \phi(\mu)-\phi(y)-\nabla\phi(y)\cdot(\mu-y) + \nabla\phi(\mu)\cdot(\mu-\mu)\newline
+&amp;= D_{\phi}(\mu, y)\newline
+&amp;\geq 0
+\end{align}</li>
+</ul>
+
+<p>So, one immediate implication of this property is that the squared error is minimized by the mean:
+<script type="math/tex">(x-y)\cdot(x-y)</script> is a Bregman divergence, so irrespective of how <script type="math/tex">X</script> is distributed, we have that</p>
+
+<script type="math/tex; mode=display">\arg\min_{y}\mathbb{E}[(X-y)\cdot(X-y)] = \mathbb{E}[X]</script>
+
+<p>Something similar applies to the Poisson case, as we’ll show below.</p>
+
+<h3 id="4-poisson-consistency-without-the-poisson">4. Poisson consistency without the Poisson</h3>
+<p>To show that Poisson regression is consistent even when the data is not Poisson, we’ll show that the Poisson log likelihood can be written as a Bregman divergence, from which it follows that the mean will minimize it (and then do a little bit extra stuff).</p>
+
+<p>Consider <script type="math/tex">Y\mid x</script> for any arbitrary <script type="math/tex">x</script>, and assume it has true distribution <script type="math/tex">P(y)</script> and true mean <script type="math/tex">\lambda_x = \mathbb{E}^P[y] = \int dP(y)y</script>.</p>
+<ul>
+  <li>Under the assumption that <script type="math/tex">Y\mid x \sim Psn(\lambda_x)</script>, the negative log-likelihood can be written as 
+\begin{align}
+-l(\lambda, y) &amp;= -y\log(\lambda) +\lambda - \log(y!) \newline
+ &amp; = -y\log(\lambda) + \lambda + y\log(y) -y + g(y)
+\end{align}
+for some <script type="math/tex">g(y)</script> that we don’t care about because the purpose of the log likelihood is to be minimized as a function of <script type="math/tex">\lambda</script>.</li>
+  <li>Now, observe that if we define <script type="math/tex">\phi(x) = x\log(x)</script>, then <script type="math/tex">D_{\phi}(y,\lambda) = y\log(y)-y\log(\lambda) -y + \lambda</script></li>
+  <li>So it follows that <script type="math/tex">-l(\lambda, y) = D_{\phi}(y, \lambda) + g(y)</script></li>
+  <li>Thus, maximizing the expected Poisson log likelihood is equivalent to minimizing the expected Bregman divergence:
+\begin{equation}
+\arg\max_{\lambda} \mathbb{E}^P[l(\lambda, Y)] =  \arg\min_{\lambda} \mathbb{E}^P[D_{\phi}(Y, \lambda)] = \lambda_x
+\end{equation}</li>
+  <li>That is, irrespective of what the true distribution of <script type="math/tex">Y\mid x</script> actually is, if you assume that <script type="math/tex">Y\mid x</script> is Poisson and write down the log likelihood, the minimizer of this will the expected value.</li>
+</ul>
+
+<p>Now, because our model was correctly specified and in fact there is some <script type="math/tex">\theta^\ast</script> for which <script type="math/tex">\lambda_x=x\cdot \theta^\ast</script> for all <script type="math/tex">x</script>, it follows that this <script type="math/tex">\theta^\ast</script> will maximize the log likelihoods of <script type="math/tex">Y\mid x</script> for each <script type="math/tex">x</script>, and therefore maximize the overall Poisson log likelihood.  From here, it follows that as you get more and more data, your empirical distribution of <script type="math/tex">(x,y)</script> will look more and more like the true one, so in the limit you’ll recover the true <script type="math/tex">\theta^\ast</script>, and thus consistency is established.  (Note: to actually write down a proof, there’s some amount of technical stuff you’ll have to do involving uniform convergence and continuity of argmins and uniqueness of <script type="math/tex">\theta^\ast</script> and what else have you.  But honestly it’s been a while since grad school, and the intuition is roughly just this, so whatever.)</p>
+
+<p>And we’re done.  You can now go do Poisson regression in peace.</p>
+
+<p>A few more notable points:</p>
+<ul>
+  <li>This result is just for consistency.  If you want confidence intervals then the ones you get out of Poisson regression are going to be incorrect if your distribution is not actually Poisson.</li>
+  <li>The linear form we assumed for <script type="math/tex">\log(\mathbb{E}[Y\mid x])</script> actually doesn’t play any role in this result.  Though, if you use something nonlinear, it’s worth bearing in mind how this would impact the concavity of your log likelihood.</li>
+  <li>It’s important to have the functional form of <script type="math/tex">\mathbb{E}[Y\mid x]</script> correctly specified in order for the consistency result to hold.  While this is a less demanding condition relative to getting the entire distribution right, it’s still kinda hard.</li>
+  <li>This result says nothing about rate of convergence.  If the true distribution is actually Poisson, then you can’t do better than Poisson regression (since in that case it’s MLE), but otherwise you can gain something by knowing more information about the distribution.  So maybe think about that if your data is extremely non-Poisson.</li>
+  <li>It turns out that there’s quite a lot of distributions (the exponential family) whose log likelihoods can be written as Bregman divergences, and as a result MLE is actually mean consistent under an assumption that the distribution is something from this family.  For example,  the Gaussian is member of this family, and the <script type="math/tex">L_2</script> distance is the Bregman divergence corresponding to the Gaussian distribution (which makes sense, since linear regression is just MLE under the assumption of Gaussian errors).  The paper in the reference has a more general treatment of this correspondence between exponential families and Bregman divergence.</li>
+</ul>
+
+<h3 id="references">References</h3>
+<p>[1]. <a href="http://www.jmlr.org/papers/volume6/banerjee05b/banerjee05b.pdf">“Clustering with Bregman Divergences”, JMLR 2005</a></p>
+
+  </div>
+
+  
+</article>
+
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+<!--     <h2 class="footer-heading">J. Mark Hou</h2> -->
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li>
+            </li>
+            
+            <li> email: work{at}jmhou{dot}com </li>
+            
+        </ul>
+      </div>
+
+      <div class="footer-col footer-col-2">
+        <ul class="social-media-list">
+          <li>
+          
+            <a href="https://github.com/j-mark-hou"><span class="icon icon--github"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg></span><span class="username"></span></a>
+
+          
+
+          
+            <a href="https://linkedin.com/in/j-mark-hou-8ba79555"><span class="icon icon--linkedin"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg></span><span class="username"></span></a>
+
+          
+
+          
+          </li>
+        </ul>
+      </div>
+
+      <div class="footer-col footer-col-3">
+        <p></p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+
+  </body>
+
+</html>
