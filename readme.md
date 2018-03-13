@@ -3,6 +3,7 @@ instructions for running:
 2. install docker and docker-compose
 3. ```cd /my/dir/jmhsite```
 4. ```docker-compose up```
+
 This will 
 - build a docker image containing the required gemfiles and whatever for the blog 
 - run it, so that it's accessible at localhost:4000 from your browser
