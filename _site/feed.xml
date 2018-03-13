@@ -1,4 +1,197 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.6.2">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2017-12-13T01:55:49-05:00</updated><id>http://localhost:4000/</id><title type="html">J. Mark Hou</title><subtitle></subtitle><entry><title type="html">What are parameter estimates even</title><link href="http://localhost:4000/estimates/" rel="alternate" type="text/html" title="What are parameter estimates even" /><published>2017-11-28T21:00:00-05:00</published><updated>2017-11-28T21:00:00-05:00</updated><id>http://localhost:4000/estimates</id><content type="html" xml:base="http://localhost:4000/estimates/">&lt;p&gt;People often try and estimate things.  For example, people at tech companies tend to run a lot of experiments in order to estimate the impact of various policies (e.g. new website layout) on important-ish things (e.g. user signup rate).  The process generally works like this:&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.6.2">Jekyll</generator><link href="http://0.0.0.0:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://0.0.0.0:4000/" rel="alternate" type="text/html" /><updated>2018-03-13T20:06:55+00:00</updated><id>http://0.0.0.0:4000/</id><title type="html">J. Mark Hou</title><subtitle></subtitle><entry><title type="html">Nonparametric / deep instrumental variables</title><link href="http://0.0.0.0:4000/deepiv/" rel="alternate" type="text/html" title="Nonparametric / deep instrumental variables" /><published>2018-03-07T02:00:00+00:00</published><updated>2018-03-07T02:00:00+00:00</updated><id>http://0.0.0.0:4000/deepiv</id><content type="html" xml:base="http://0.0.0.0:4000/deepiv/">&lt;p&gt;Here’s a pretty fun &lt;a href=&quot;http://proceedings.mlr.press/v70/hartford17a/hartford17a.pdf&quot;&gt;paper on deep instrumental variables&lt;/a&gt;.  Some reasons why it’s fun:&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;deep learning is pretty hype&lt;/li&gt;
+  &lt;li&gt;instrumental variables (and causal inference more generally) is becoming pretty hype&lt;/li&gt;
+  &lt;li&gt;paper is pretty easy to understand&lt;/li&gt;
+  &lt;li&gt;deep learning is actually pretty ancillary to the central thrust of the paper&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;I’ll discuss what instrumental variables is, and how this deep IV paper approaches the problem.&lt;/p&gt;
+
+&lt;h3 id=&quot;instrumental-variables-iv&quot;&gt;Instrumental variables (IV)&lt;/h3&gt;
+&lt;p&gt;People are often interested in how things affect other things:&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;If you sell stuff, you might care about how prices affect number of sales.&lt;/li&gt;
+  &lt;li&gt;If you run a social media company, you might be interested in how the number of ads you show affect how much people use your platform.&lt;/li&gt;
+  &lt;li&gt;If you work in education policy, you might care about how education affects peoples’ lifetime earnings.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;This general situation can be described as follows:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;script type=&quot;math/tex&quot;&gt;y = g(x) + \epsilon&lt;/script&gt;, where &lt;script type=&quot;math/tex&quot;&gt;y&lt;/script&gt; and &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; are observable but &lt;script type=&quot;math/tex&quot;&gt;\epsilon&lt;/script&gt; is not&lt;/li&gt;
+  &lt;li&gt;you’re trying to learn what &lt;script type=&quot;math/tex&quot;&gt;g&lt;/script&gt; is from your data.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;To see how each of the examples above maps to the formula above:&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;&lt;script type=&quot;math/tex&quot;&gt;y&lt;/script&gt; is how many units something sold, &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; is the price.&lt;/li&gt;
+  &lt;li&gt;&lt;script type=&quot;math/tex&quot;&gt;y&lt;/script&gt; is the number of hours someone spends on your social media site, &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; is the fraction of their news feed that’s ads.&lt;/li&gt;
+  &lt;li&gt;&lt;script type=&quot;math/tex&quot;&gt;y&lt;/script&gt; is somebody’s total lifetime earnings, &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; is their education level.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;So, the most natural thing you can do to figure out how &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; affects &lt;script type=&quot;math/tex&quot;&gt;y&lt;/script&gt; is to just… look at your data.  As in, for a given &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt;, you can look at all the various &lt;script type=&quot;math/tex&quot;&gt;y&lt;/script&gt;s associated with that, and then just average them to get
+&lt;script type=&quot;math/tex&quot;&gt;\hat{g}(x):=\mathbb{E}_n[y|x]&lt;/script&gt;.  It’s clear that if &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[\epsilon \mid x]=0&lt;/script&gt;, then &lt;script type=&quot;math/tex&quot;&gt;\hat{g}(x)\rightarrow g(x)&lt;/script&gt; for all &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt;, so that as you get more and more data you’ll eventually learn the function &lt;script type=&quot;math/tex&quot;&gt;g&lt;/script&gt;.&lt;/p&gt;
+
+&lt;p&gt;This method of requires that &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[\epsilon \mid x]=0&lt;/script&gt;.  Unfortunately, this assumption is often violated.  For each of the above examples:&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;The higher priced items are also higher quality, and higher quality items sell more, so that quality drives a part of &lt;script type=&quot;math/tex&quot;&gt;\epsilon&lt;/script&gt;, so that &lt;script type=&quot;math/tex&quot;&gt;\epsilon&lt;/script&gt; is correlated with price &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt;.&lt;/li&gt;
+  &lt;li&gt;Your social media platform’s machine learning team has already optimized ad targeting a bit, so that people that get shown more ads are naturally more patient, and more patient people spend more time on your platform, so that patience drives a part of &lt;script type=&quot;math/tex&quot;&gt;\epsilon&lt;/script&gt;, so that &lt;script type=&quot;math/tex&quot;&gt;\epsilon&lt;/script&gt; is correlated with number of ads the person sees &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt;.&lt;/li&gt;
+  &lt;li&gt;People who are more intelligent tend to get more education, but intelligence itself also affects how much you earn, so that intelligence drives a part of &lt;script type=&quot;math/tex&quot;&gt;\epsilon&lt;/script&gt;, so that &lt;script type=&quot;math/tex&quot;&gt;\epsilon&lt;/script&gt; is correlated with education level &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt;.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;To deal with this problem, people often turn to something called ‘instrumental variables’.  An instrumental variable &lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt; is something such that:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt; affects &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt; doesn’t affect &lt;script type=&quot;math/tex&quot;&gt;y&lt;/script&gt; via any other channels, only through its impact on &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt; is independent of &lt;script type=&quot;math/tex&quot;&gt;\epsilon&lt;/script&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;In the pricing example, you might run an experiment where you randomly discount some products by some percentage.  The discount amount has an obvious affect on the price &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt;, is independent of quality or anything else affecting &lt;script type=&quot;math/tex&quot;&gt;\epsilon&lt;/script&gt; (because it’s random), and (probably) doesn’t affect purchases except through price.  So the discount percentage would be your instrument &lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt;.&lt;/p&gt;
+
+&lt;p&gt;With your instrument, you can basically do something like this:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;look at variation in &lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt;&lt;/li&gt;
+  &lt;li&gt;this variation in &lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt; affects &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt;, which then affects &lt;script type=&quot;math/tex&quot;&gt;y&lt;/script&gt;&lt;/li&gt;
+  &lt;li&gt;so, the change in &lt;script type=&quot;math/tex&quot;&gt;y&lt;/script&gt; when &lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt; varies must be due purely to changes &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt;, since by assumption:
+    &lt;ul&gt;
+      &lt;li&gt;&lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt; has no effect on &lt;script type=&quot;math/tex&quot;&gt;\epsilon&lt;/script&gt;, and&lt;/li&gt;
+      &lt;li&gt;&lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt; has no other impact on &lt;script type=&quot;math/tex&quot;&gt;y&lt;/script&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;this allows you to deduce the impact of &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; on &lt;script type=&quot;math/tex&quot;&gt;y&lt;/script&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;We’ll be more formal about this in the next section.&lt;/p&gt;
+
+&lt;h3 id=&quot;nonparametric-iv-more-formally&quot;&gt;Nonparametric IV, more formally&lt;/h3&gt;
+&lt;p&gt;(Note: you can see &lt;a href=&quot;https://eml.berkeley.edu//~powell/npiv.pdf&quot;&gt;Newey Powell 2003&lt;/a&gt; for more details.  This is called ‘nonparametric’ because we’re treating the function &lt;script type=&quot;math/tex&quot;&gt;g&lt;/script&gt; as a general function, as opposed to being defined by a fixed set of parameters.)&lt;/p&gt;
+
+&lt;p&gt;Alright, let’s formally define our setup:
+\begin{equation}
+y=g(x)+\epsilon,\quad \mathbb{E}[e\mid z]=0, \quad \text{possibly } \mathbb{E}[e\mid x]\neq 0
+\tag{1}
+\label{ivdef}
+\end{equation}&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;script type=&quot;math/tex&quot;&gt;y, x, z&lt;/script&gt; are all observable, &lt;script type=&quot;math/tex&quot;&gt;\epsilon&lt;/script&gt; is not&lt;/li&gt;
+  &lt;li&gt;&lt;script type=&quot;math/tex&quot;&gt;y&lt;/script&gt; is 1-dimensional, &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; and &lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt; can be multidimensional&lt;/li&gt;
+  &lt;li&gt;&lt;script type=&quot;math/tex&quot;&gt;y&lt;/script&gt; is your outcome variable, &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; are covariates, &lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt; are instruments&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;So, the formal version of the argument given at the end of the previous section is basically integrating the expression in \eqref{ivdef}:
+\begin{equation}
+\mathbb{E}[y\mid z] = \int dF(x\mid z) g(x)
+\tag{2}
+\label{fredholm}
+\end{equation}
+Some points:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;script type=&quot;math/tex&quot;&gt;\epsilon&lt;/script&gt; drops out because &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[e\mid z]=0&lt;/script&gt;.&lt;/li&gt;
+  &lt;li&gt;&lt;script type=&quot;math/tex&quot;&gt;F(x\mid z)&lt;/script&gt; is observable, since it’s just the distribution of &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; given &lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt;.&lt;/li&gt;
+  &lt;li&gt;&lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[y\mid z]&lt;/script&gt; is observable, since it’s just the average of &lt;script type=&quot;math/tex&quot;&gt;y&lt;/script&gt; given &lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt;.&lt;/li&gt;
+  &lt;li&gt;So, the problem of figuring out what &lt;script type=&quot;math/tex&quot;&gt;g&lt;/script&gt; is amounts to solving for &lt;script type=&quot;math/tex&quot;&gt;g&lt;/script&gt; given this equation.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Alright, let’s do some examples of equation \eqref{fredholm} to fix intuition:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Suppose &lt;script type=&quot;math/tex&quot;&gt;x=z&lt;/script&gt;.
+    &lt;ul&gt;
+      &lt;li&gt;In that case, &lt;script type=&quot;math/tex&quot;&gt;F(x\mid z)&lt;/script&gt; is just the delta distribution, supported purely on &lt;script type=&quot;math/tex&quot;&gt;x=z&lt;/script&gt;.&lt;/li&gt;
+      &lt;li&gt;So, \eqref{fredholm} reduces to &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[y\mid z] =  g(x)\mid_{x=z}&lt;/script&gt;, which is just &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[y\mid x] =  g(x)&lt;/script&gt;.&lt;/li&gt;
+      &lt;li&gt;This makes sense, since if &lt;script type=&quot;math/tex&quot;&gt;x=z&lt;/script&gt; then there’s no need for an instrument.  Your &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; is independent of &lt;script type=&quot;math/tex&quot;&gt;\epsilon&lt;/script&gt;.  So you can just literally look at &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[y\mid x]&lt;/script&gt; to get &lt;script type=&quot;math/tex&quot;&gt;g(x)&lt;/script&gt;.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Suppose &lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt; has no impact on &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt;, as in &lt;script type=&quot;math/tex&quot;&gt;F(x\mid z) = F(x)&lt;/script&gt; for all &lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt;.
+    &lt;ul&gt;
+      &lt;li&gt;In that case, \eqref{fredholm} becomes &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[y\mid z] = \int dF(x) g(x)&lt;/script&gt; which implies that &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[y\mid z] = \mathbb{E}[g(x)]&lt;/script&gt;.&lt;/li&gt;
+      &lt;li&gt;Thus, you’re not going to be able to learn &lt;script type=&quot;math/tex&quot;&gt;g(x)&lt;/script&gt; in this case (unless &lt;script type=&quot;math/tex&quot;&gt;g&lt;/script&gt; is constant).&lt;/li&gt;
+      &lt;li&gt;This is also intuitive: if your instrument &lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt; doesn’t have any impact on your &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt;, then it’s not possible for you to deduce the impact of &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; on &lt;script type=&quot;math/tex&quot;&gt;y&lt;/script&gt; via this instrument because changing this instrument doesn’t change your &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; at all.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Suppose &lt;script type=&quot;math/tex&quot;&gt;g(x)=x\cdot\beta&lt;/script&gt;, and also that &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[x\mid z]=Az&lt;/script&gt; for some vector &lt;script type=&quot;math/tex&quot;&gt;\beta&lt;/script&gt; and &lt;script type=&quot;math/tex&quot;&gt;A&lt;/script&gt; where &lt;script type=&quot;math/tex&quot;&gt;A&lt;/script&gt; has rank &lt;script type=&quot;math/tex&quot;&gt;length(x)&lt;/script&gt;.
+    &lt;ul&gt;
+      &lt;li&gt;\eqref{fredholm} becomes &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[y\mid z] = \int dF(x\mid z) x\cdot\beta&lt;/script&gt; which implies &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[y\mid z] = \mathbb{E}[x\mid z]\cdot\beta = (Az)\cdot\beta&lt;/script&gt;.&lt;/li&gt;
+      &lt;li&gt;You can estimate &lt;script type=&quot;math/tex&quot;&gt;A&lt;/script&gt; since &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[x\mid z]=Az&lt;/script&gt; and you observe &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[x\mid z]&lt;/script&gt; and &lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt;.&lt;/li&gt;
+      &lt;li&gt;You can estimate &lt;script type=&quot;math/tex&quot;&gt;\beta&lt;/script&gt; since you observe &lt;script type=&quot;math/tex&quot;&gt;Az&lt;/script&gt; and &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[y\mid z]&lt;/script&gt; and &lt;script type=&quot;math/tex&quot;&gt;Az&lt;/script&gt; spans the same space as &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; as you vary &lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt;.&lt;/li&gt;
+      &lt;li&gt;This is just your typical linear instrumental variables setup, where in your first stage you estimate how your &lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt; affects your &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; (which is the &lt;script type=&quot;math/tex&quot;&gt;A&lt;/script&gt;), and then in your second stage where you plug in your first-stage estimate of &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; given &lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt; (which is &lt;script type=&quot;math/tex&quot;&gt;Az&lt;/script&gt;) to estimate &lt;script type=&quot;math/tex&quot;&gt;\beta&lt;/script&gt;.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;identification-estimation&quot;&gt;Identification? Estimation?&lt;/h3&gt;
+&lt;p&gt;Given that we want to back out &lt;script type=&quot;math/tex&quot;&gt;g&lt;/script&gt; using \eqref{fredholm}, it would be nice if there were some identification conditions telling us whether/when there’s only a single function &lt;script type=&quot;math/tex&quot;&gt;g&lt;/script&gt; that satisfies \eqref{fredholm} out of some class of functions &lt;script type=&quot;math/tex&quot;&gt;\mathcal{G}&lt;/script&gt;.  Identification holds IFF a ‘completeness’ condition holds.  Roughly this completeness condition amounts to a requirement that any random variable &lt;script type=&quot;math/tex&quot;&gt;\tilde{g}(x)&lt;/script&gt; for &lt;script type=&quot;math/tex&quot;&gt;\tilde{g}\in \mathcal{G}&lt;/script&gt; must somehow not exploit any information that’s present in &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; but not in &lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt;:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Note that any function &lt;script type=&quot;math/tex&quot;&gt;\tilde{g}&lt;/script&gt; that satisfies &lt;script type=&quot;math/tex&quot;&gt;\eqref{fredholm}&lt;/script&gt; must have &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[y\mid z] = \int dF(x\mid z) \tilde{g}(x)&lt;/script&gt;&lt;/li&gt;
+  &lt;li&gt;So &lt;script type=&quot;math/tex&quot;&gt;0 = \mathbb{E}[\tilde{g}(x)-g(x) \mid z]&lt;/script&gt;.&lt;/li&gt;
+  &lt;li&gt;By definition &lt;script type=&quot;math/tex&quot;&gt;g&lt;/script&gt; is identified exactly when &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[\tilde{g}(x) \mid z]=\mathbb{E}[g(x) \mid z]&lt;/script&gt; implies &lt;script type=&quot;math/tex&quot;&gt;\tilde{g}=g&lt;/script&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Let’s look again at the various examples above to understand this completeness condition:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;If &lt;script type=&quot;math/tex&quot;&gt;x=z&lt;/script&gt;, then clearly fixing &lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt; exactly pins down &lt;script type=&quot;math/tex&quot;&gt;g(x)=g(z)&lt;/script&gt;, so this condtion holds, and as thus &lt;script type=&quot;math/tex&quot;&gt;g&lt;/script&gt; is identified.&lt;/li&gt;
+  &lt;li&gt;If &lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt; has no impact on &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt;, then any &lt;script type=&quot;math/tex&quot;&gt;\tilde{g}&lt;/script&gt; that averages out to &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[g]&lt;/script&gt; is going to satisfy &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[\tilde{g}(x) \mid z]=\mathbb{E}[g(x) \mid z]=\mathbb{E}[g(x)]&lt;/script&gt;, so that we will not be able to identify any &lt;script type=&quot;math/tex&quot;&gt;g&lt;/script&gt; that’s not constant.&lt;/li&gt;
+  &lt;li&gt;If &lt;script type=&quot;math/tex&quot;&gt;g(x)=x\cdot\beta&lt;/script&gt;, and also that &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[x\mid z]=Az&lt;/script&gt; with &lt;script type=&quot;math/tex&quot;&gt;A&lt;/script&gt; full rank, then &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; may contain more information than &lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt;, but the full rank condition guarantees that varying &lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt; induces variation in &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; in as many directions as &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; itself, so that the &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[x\mid z]&lt;/script&gt; spans the same space as &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt;.  Then, because &lt;script type=&quot;math/tex&quot;&gt;g=x\cdot\beta&lt;/script&gt; is linear, the variation in &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[x\mid z]&lt;/script&gt; suffices to recover &lt;script type=&quot;math/tex&quot;&gt;\beta&lt;/script&gt;, so that &lt;script type=&quot;math/tex&quot;&gt;g&lt;/script&gt; is identified.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;There are some theoretical results on this completeness condition, though maybe not as extensive as we’d like.&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;There are fairly simple situations where completeness fails (see &lt;a href=&quot;http://web2.uconn.edu/tripathi/published-papers/et-ident.pdf&quot;&gt;Severini Tripathi 2006&lt;/a&gt;).&lt;/li&gt;
+  &lt;li&gt;But completeness is ‘generic’ in some sense so long as you have as many instruments &lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt; as regressors &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; (see &lt;a href=&quot;https://core.ac.uk/download/pdf/6339904.pdf&quot;&gt;Andrews 2011&lt;/a&gt;).
+    &lt;ul&gt;
+      &lt;li&gt;The sense in which completeness is generic is an extension of the standard ‘measure-1 wrt Lebesgue’ definition extended to infinite dimensional spaces.&lt;/li&gt;
+      &lt;li&gt;The genericness is relative to a fairly expansive looking class of distributions (as in, consider the set of all distributions in this fairly expansive class, then the complete ones are generic).&lt;/li&gt;
+      &lt;li&gt;This seems like a pretty useful result that suggests we shouldn’t worry too much, though I’m not entirely convinced I trust my intuition about these kind of unnatural infinite-dimensional objects.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Also, it’s impossible to perform hypothesis testing for whether completeness holds, based on observations of &lt;script type=&quot;math/tex&quot;&gt;x,z&lt;/script&gt; (see &lt;a href=&quot;http://www.econ.ucla.edu/andres/pdfs/testingid.pdf&quot;&gt;Canay Santos Shaikh 2013&lt;/a&gt;).&lt;/li&gt;
+  &lt;li&gt;Though this untestability is due to the presence of incomplete distributions that are arbitrarily close to any complete distribution, and if you kind of lump these arbitrarily-close-to-being-complete distributions with the complete ones, testing becomes possible (see &lt;a href=&quot;https://www.ssc.wisc.edu/~jfreyberger/Completeness_Freyberger.pdf&quot;&gt;Freyberger 2017&lt;/a&gt;).&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;In practice, identification is good, but if we want to estimate &lt;script type=&quot;math/tex&quot;&gt;g&lt;/script&gt; we need some sort of consistency result.  On this front, we have the problem that the solution to \eqref{fredholm} may not be a continuous function of &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[y\mid z]&lt;/script&gt; and &lt;script type=&quot;math/tex&quot;&gt;F(x\mid z)&lt;/script&gt;.  This discontinuity is a problem, because typically we’ll estimate stuff by getting a bunch of data so that our empirical versions of &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[y\mid z]&lt;/script&gt; and &lt;script type=&quot;math/tex&quot;&gt;F(x\mid z)&lt;/script&gt; converge towards the truth, and then we invoke an argument by continuity that our resulting estimate of &lt;script type=&quot;math/tex&quot;&gt;g&lt;/script&gt; will also converge towards the truth as we get more data.  If we have no guarantee of this continuity then there’s no guarantee that that our estimate of &lt;script type=&quot;math/tex&quot;&gt;g&lt;/script&gt; will converge to the truth even if our estimates of &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[y\mid z]&lt;/script&gt; and &lt;script type=&quot;math/tex&quot;&gt;F(x\mid z)&lt;/script&gt; become arbitrarily good. You can often circumvent this kind of issue by regularizing things appropriately, but in that case you’ll have to argue consistency on a case by case basis.  For example, Newey Powell 2003 provides some consistency results assuming that &lt;script type=&quot;math/tex&quot;&gt;g&lt;/script&gt; is some linear combination of some basis functions + &lt;script type=&quot;math/tex&quot;&gt;L^2&lt;/script&gt; regularization.&lt;/p&gt;
+
+&lt;p&gt;Overall, general theory for identification/estimation of nonparametric IV is somewhat incomplete, so that we don’t have the kind of totally solid guarantees that maybe we’d like.&lt;/p&gt;
+
+&lt;h3 id=&quot;deep-iv&quot;&gt;Deep IV&lt;/h3&gt;
+&lt;p&gt;Thankfully, we’re now at a point in history where it you can often just throw function approximators at various problems and have it work pretty well even if it’s not entirely clear why.  So, even with a lack of theoretical guarantees about identification / estimation, it’s not a bad idea to just go ahead and just try to do something reasonable, and hope that things work out.&lt;/p&gt;
+
+&lt;p&gt;The Deep IV paper proposes to do a very reasonable thing:&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;Do standard supervised learning to estimate &lt;script type=&quot;math/tex&quot;&gt;F(x\mid z)&lt;/script&gt;.  This is the ‘first stage’.&lt;/li&gt;
+  &lt;li&gt;Use your &lt;script type=&quot;math/tex&quot;&gt;\hat{F}(x\mid z)&lt;/script&gt; as a proxy for the truth &lt;script type=&quot;math/tex&quot;&gt;F(x\mid z)&lt;/script&gt;, find &lt;script type=&quot;math/tex&quot;&gt;\hat{g}&lt;/script&gt; so that &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[y\mid z] = \int d\hat{F}(x\mid z) \hat{g}(x)&lt;/script&gt; is approximately satisfied in your data.  This is the ‘second stage’&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;This is quite intuitive: if we have lots of data, we can get a pretty good estimate of &lt;script type=&quot;math/tex&quot;&gt;F(x\mid z)&lt;/script&gt;, and also of &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[y\mid z]&lt;/script&gt;.  We’re going to hope that we live in a world where &lt;script type=&quot;math/tex&quot;&gt;g&lt;/script&gt; is identified and not too ill-posed.  If that’s the case, then as we get a lot of data, we’ll be able to learn &lt;script type=&quot;math/tex&quot;&gt;g&lt;/script&gt;.&lt;/p&gt;
+
+&lt;p&gt;This strategy is also quite nice, because it breaks the problem of estimating &lt;script type=&quot;math/tex&quot;&gt;g&lt;/script&gt; into two supervised leanring problems, both of which are fairly easy to throw function approximators at.&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;For the first stage, both &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; and &lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt; are observable.  The complication here is that, instead of trying to predict &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[x\mid z]&lt;/script&gt; as a function of &lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt;, you’re trying to predict the entire distribution of &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; given &lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt;.  Distributions are generally much more difficult to predict, particularly if &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; is multidimensional, but there’s various things you can do.  Two immediate examples:
+    &lt;ul&gt;
+      &lt;li&gt;Assume there’s some parametric form for &lt;script type=&quot;math/tex&quot;&gt;F(x\mid z)&lt;/script&gt;, so you’re only predicting a finite number of parameters. E.g. assume normal / mixture of normals (this is what the Deep IV paper does).&lt;/li&gt;
+      &lt;li&gt;If the distribution of &lt;script type=&quot;math/tex&quot;&gt;x\mid z&lt;/script&gt; is just 1-dimensional, then you can just estimate quantiles of &lt;script type=&quot;math/tex&quot;&gt;F(x\mid z)&lt;/script&gt;.&lt;/li&gt;
+      &lt;li&gt;Discretize your &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt;-space and estimate a categorical distribution on the grid.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;For the second stage, this is also a supervised learning problem: You have &lt;script type=&quot;math/tex&quot;&gt;N&lt;/script&gt; observations &lt;script type=&quot;math/tex&quot;&gt;y_i, x_i, z_i&lt;/script&gt;, and you’re trying to find some &lt;script type=&quot;math/tex&quot;&gt;\hat{g}&lt;/script&gt; such that \eqref{fredholm} holds approximately in your data.  That is, you want to pickg &lt;script type=&quot;math/tex&quot;&gt;g&lt;/script&gt; that makes &lt;script type=&quot;math/tex&quot;&gt;\mathbb{E}[y\mid z]&lt;/script&gt; and &lt;script type=&quot;math/tex&quot;&gt;\int d\hat{F}(x\mid z) \hat{g}(x)&lt;/script&gt; very close to each other in your data.  So, you can think about minimizing the squared loss:
+\begin{align}
+\hat{g}&amp;amp;= \arg\min_{\tilde{g}}\sum_i\left(y_i - \int d\hat{F}(x\mid z_i) \tilde{g}(x))\right)^2 \newline
+&amp;amp; \approx \arg\min_{\tilde{g}}\sum_i\left(y_i - \sum_{x_{ij}\sim \hat{F}(x_{ij}\mid z_i)} \tilde{g}(x))\right)^2
+\label{obj}
+\tag{3}
+\end{align}
+where in the second step we’ve replaced the internal integral with a sum, because the integral &lt;script type=&quot;math/tex&quot;&gt;\int d\hat{F}(x\mid z_i) \tilde{g}(x))&lt;/script&gt; will need to be implemented by sampling a bunch of &lt;script type=&quot;math/tex&quot;&gt;x_{ij}\sim \hat{F}(x\mid z_i)&lt;/script&gt; and then taking a sum.
+    &lt;ul&gt;
+      &lt;li&gt;You can parameterize your &lt;script type=&quot;math/tex&quot;&gt;\tilde{g}&lt;/script&gt; as a function of some stuff, in which case you can just go ahead and do gradient descent or something like that.  The Deep IV paper uses a neural network here.&lt;/li&gt;
+      &lt;li&gt;There’s some amount of complication here, in that there’s a sum on the inside of your square that you need to evaluate every time you want to evaluate the objective function, and that’s kind of hard to deal with.  So, one thing you can do is to just move the sum outside of the square.  This amounts to using a different objective function (that upper bounds the previous one via Jensen):
+\begin{align}
+\hat{g}&amp;amp;= \arg\min_{\tilde{g}}\sum_i\int d\hat{F}(x\mid z_i) \left(y_i - \tilde{g}(x))\right)^2 \newline
+ &amp;amp; \approx \arg\min_{\tilde{g}}\sum_i \sum_{x_{ij}\sim \hat{F}(x_{ij}\mid z_i)} \left(y_i - \tilde{g}(x_{ij}))\right)^2
+\tag{4}
+\label{ezobj}
+\end{align}
+With this, you can just randomly draw a bunch of &lt;script type=&quot;math/tex&quot;&gt;\hat{x}_{ij}&lt;/script&gt;s for each &lt;script type=&quot;math/tex&quot;&gt;z_i&lt;/script&gt; according to &lt;script type=&quot;math/tex&quot;&gt;\hat{F}(x\mid z_i)&lt;/script&gt;, treat this new set of &lt;script type=&quot;math/tex&quot;&gt;(y_i, \hat{x}_{ij}, z_i)&lt;/script&gt; as your data and then just do straight-up supervised learning on this instead.  However, just swapping out one objective function for another is a bit questionable, and certainly if we had consistency before we would lose it by doing this.  But at the end of the day, everything that we’re doing here is a bit suspicious from a theoretical perspective, and this swapping out kind of feels not that unreasonable.  So, worth trying out, especially because it’s easy.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;</content><author><name></name></author><summary type="html">Here’s a pretty fun paper on deep instrumental variables. Some reasons why it’s fun: deep learning is pretty hype instrumental variables (and causal inference more generally) is becoming pretty hype paper is pretty easy to understand deep learning is actually pretty ancillary to the central thrust of the paper</summary></entry><entry><title type="html">What are parameter estimates even</title><link href="http://0.0.0.0:4000/estimates/" rel="alternate" type="text/html" title="What are parameter estimates even" /><published>2017-11-29T02:00:00+00:00</published><updated>2017-11-29T02:00:00+00:00</updated><id>http://0.0.0.0:4000/estimates</id><content type="html" xml:base="http://0.0.0.0:4000/estimates/">&lt;p&gt;People often try and estimate things.  For example, people at tech companies tend to run a lot of experiments in order to estimate the impact of various policies (e.g. new website layout) on important-ish things (e.g. user signup rate).  The process generally works like this:&lt;/p&gt;
 &lt;ol&gt;
   &lt;li&gt;run your experiment and get some data&lt;/li&gt;
   &lt;li&gt;use your data to build an estimate of the impact of your policy&lt;/li&gt;
@@ -72,7 +265,7 @@ That is, if you restrict yourself to just applying some uniform scaling to your 
 &lt;span class=&quot;n&quot;&gt;plt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ylabel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'gamma'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 &lt;span class=&quot;n&quot;&gt;plt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;title&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'coefficient on gamma_hat: {:.3f}'&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lm&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;coef_&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]))&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;&lt;img src=&quot;http://localhost:4000/assets/images/2017-11-27-linear.png&quot; alt=&quot;linear&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;http://0.0.0.0:4000/assets/images/2017-11-27-linear.png&quot; alt=&quot;linear&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;As expected, the coefficient on &lt;code class=&quot;highlighter-rouge&quot;&gt;gamma_hat&lt;/code&gt; here is around 1/2 since the variance of the truth and the variance of the noise are equal.&lt;/p&gt;
 
@@ -108,7 +301,7 @@ That is, if you restrict yourself to just applying some uniform scaling to your 
 &lt;span class=&quot;n&quot;&gt;plt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;xlabel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'gamma_hat'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 &lt;span class=&quot;n&quot;&gt;plt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ylabel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'gamma'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;&lt;img src=&quot;http://localhost:4000/assets/images/2017-11-27-upscale.png&quot; alt=&quot;upscale&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;http://0.0.0.0:4000/assets/images/2017-11-27-upscale.png&quot; alt=&quot;upscale&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;The slope of the local regression is quite high around 0, indicating that the estimates should be scaled up around 0, whereas further away from 0 the slope is lower.&lt;/p&gt;
 
@@ -172,7 +365,7 @@ Surely there are other useful features that can be used to get even better proxi
   &lt;li&gt;You might create perverse incentives where people will cheat on their experiments because if their estimates end up being bad, they’ll cause your regression to think that their entire group runs bad experiments, and thus anger their entire team / endanger their careers.&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;These problems are probably not insurmountable, but they certainly aren’t trivial to solve on an institutional level.  So maybe it’s not so surprising that almost every place just goes with just the straight up raw parameter estimates.  They might not be great, but they’re easy, and often it’s better to be fast and ballpark than slow and exact.&lt;/p&gt;</content><author><name></name></author><summary type="html">People often try and estimate things. For example, people at tech companies tend to run a lot of experiments in order to estimate the impact of various policies (e.g. new website layout) on important-ish things (e.g. user signup rate). The process generally works like this: run your experiment and get some data use your data to build an estimate of the impact of your policy assume that this estimate is your best proxy for the true impact base your decisions on this estimate of the impact (e.g. move to the new website layout if the impact on conversion is sufficiently positive)</summary></entry><entry><title type="html">Poisson regression and Bregman divergence</title><link href="http://localhost:4000/bregman/" rel="alternate" type="text/html" title="Poisson regression and Bregman divergence" /><published>2017-11-13T21:00:00-05:00</published><updated>2017-11-13T21:00:00-05:00</updated><id>http://localhost:4000/bregman</id><content type="html" xml:base="http://localhost:4000/bregman/">&lt;p&gt;Poisson regression is a fairly useful tool for modeling count data.  From the name, you would expect that the data should be Poisson for it to work.  As it turns out, you can actually consistently estimate your parameters even when your data is not Poisson distributed.  I’ll talk about how to arrive at this consistency result by means of a construct called the Bregman divergence.&lt;/p&gt;
+&lt;p&gt;These problems are probably not insurmountable, but they certainly aren’t trivial to solve on an institutional level.  So maybe it’s not so surprising that almost every place just goes with just the straight up raw parameter estimates.  They might not be great, but they’re easy, and often it’s better to be fast and ballpark than slow and exact.&lt;/p&gt;</content><author><name></name></author><summary type="html">People often try and estimate things. For example, people at tech companies tend to run a lot of experiments in order to estimate the impact of various policies (e.g. new website layout) on important-ish things (e.g. user signup rate). The process generally works like this: run your experiment and get some data use your data to build an estimate of the impact of your policy assume that this estimate is your best proxy for the true impact base your decisions on this estimate of the impact (e.g. move to the new website layout if the impact on conversion is sufficiently positive)</summary></entry><entry><title type="html">Poisson regression and Bregman divergence</title><link href="http://0.0.0.0:4000/bregman/" rel="alternate" type="text/html" title="Poisson regression and Bregman divergence" /><published>2017-11-14T02:00:00+00:00</published><updated>2017-11-14T02:00:00+00:00</updated><id>http://0.0.0.0:4000/bregman</id><content type="html" xml:base="http://0.0.0.0:4000/bregman/">&lt;p&gt;Poisson regression is a fairly useful tool for modeling count data.  From the name, you would expect that the data should be Poisson for it to work.  As it turns out, you can actually consistently estimate your parameters even when your data is not Poisson distributed.  I’ll talk about how to arrive at this consistency result by means of a construct called the Bregman divergence.&lt;/p&gt;
 
 &lt;h3 id=&quot;1-what-is-poisson-regression-and-why-does-it-exist&quot;&gt;1. What is Poisson regression and why does it exist&lt;/h3&gt;
 &lt;p&gt;Poisson regression essentially amounts to two assumption: (1) conditional on some &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; variables, your dependent variable &lt;script type=&quot;math/tex&quot;&gt;Y&lt;/script&gt; is distributed Poisson, and (2) the mean of this Poisson is an exponential of some function of &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; (let’s assume linear for now):
@@ -315,7 +508,7 @@ for some &lt;script type=&quot;math/tex&quot;&gt;g(y)&lt;/script&gt; that we don
 &lt;/ul&gt;
 
 &lt;h3 id=&quot;references&quot;&gt;References&lt;/h3&gt;
-&lt;p&gt;[1]. &lt;a href=&quot;http://www.jmlr.org/papers/volume6/banerjee05b/banerjee05b.pdf&quot;&gt;“Clustering with Bregman Divergences”, JMLR 2005&lt;/a&gt;&lt;/p&gt;</content><author><name></name></author><summary type="html">Poisson regression is a fairly useful tool for modeling count data. From the name, you would expect that the data should be Poisson for it to work. As it turns out, you can actually consistently estimate your parameters even when your data is not Poisson distributed. I’ll talk about how to arrive at this consistency result by means of a construct called the Bregman divergence.</summary></entry><entry><title type="html">Noise-contrastive estimation</title><link href="http://localhost:4000/nce/" rel="alternate" type="text/html" title="Noise-contrastive estimation" /><published>2017-11-03T22:00:00-04:00</published><updated>2017-11-03T22:00:00-04:00</updated><id>http://localhost:4000/nce</id><content type="html" xml:base="http://localhost:4000/nce/">&lt;p&gt;Interesting paper: &lt;a href=&quot;https://michaelgutmann.github.io/assets/papers/Gutmann2012a.pdf&quot;&gt;Noise-Contrastive Estimation of Unnormalized Statistical Models, with Applications to Natural Image Statistics&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;[1]. &lt;a href=&quot;http://www.jmlr.org/papers/volume6/banerjee05b/banerjee05b.pdf&quot;&gt;“Clustering with Bregman Divergences”, JMLR 2005&lt;/a&gt;&lt;/p&gt;</content><author><name></name></author><summary type="html">Poisson regression is a fairly useful tool for modeling count data. From the name, you would expect that the data should be Poisson for it to work. As it turns out, you can actually consistently estimate your parameters even when your data is not Poisson distributed. I’ll talk about how to arrive at this consistency result by means of a construct called the Bregman divergence.</summary></entry><entry><title type="html">Noise-contrastive estimation</title><link href="http://0.0.0.0:4000/nce/" rel="alternate" type="text/html" title="Noise-contrastive estimation" /><published>2017-11-04T02:00:00+00:00</published><updated>2017-11-04T02:00:00+00:00</updated><id>http://0.0.0.0:4000/nce</id><content type="html" xml:base="http://0.0.0.0:4000/nce/">&lt;p&gt;Interesting paper: &lt;a href=&quot;https://michaelgutmann.github.io/assets/papers/Gutmann2012a.pdf&quot;&gt;Noise-Contrastive Estimation of Unnormalized Statistical Models, with Applications to Natural Image Statistics&lt;/a&gt;&lt;/p&gt;
 
 &lt;p&gt;Roughly, the paper says that:&lt;/p&gt;
 &lt;ul&gt;

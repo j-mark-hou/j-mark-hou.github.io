@@ -10,7 +10,7 @@
   <meta name="description" content="People often try and estimate things. For example, people at tech companies tend to run a lot of experiments in order to estimate the impact of various polic...">
 
   <link rel="stylesheet" href="/assets/main.css">
-  <link rel="canonical" href="http://localhost:4000/estimates/">
+  <link rel="canonical" href="http://0.0.0.0:4000/estimates/">
   <link rel="alternate" type="application/rss+xml" title="J. Mark Hou" href="/feed.xml">
   
   
@@ -75,7 +75,7 @@
   <header class="post-header">
     <h1 class="post-title" itemprop="name headline">What are parameter estimates even</h1>
     <p class="post-meta">
-      <time datetime="2017-11-28T21:00:00-05:00" itemprop="datePublished">
+      <time datetime="2017-11-29T02:00:00+00:00" itemprop="datePublished">
         
         Nov 28, 2017
       </time>
@@ -157,7 +157,7 @@ That is, if you restrict yourself to just applying some uniform scaling to your 
 <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">'gamma'</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s">'coefficient on gamma_hat: {:.3f}'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">lm</span><span class="o">.</span><span class="n">coef_</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
 </code></pre></div></div>
-<p><img src="http://localhost:4000/assets/images/2017-11-27-linear.png" alt="linear" /></p>
+<p><img src="http://0.0.0.0:4000/assets/images/2017-11-27-linear.png" alt="linear" /></p>
 
 <p>As expected, the coefficient on <code class="highlighter-rouge">gamma_hat</code> here is around 1/2 since the variance of the truth and the variance of the noise are equal.</p>
 
@@ -193,7 +193,7 @@ That is, if you restrict yourself to just applying some uniform scaling to your 
 <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">'gamma_hat'</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">'gamma'</span><span class="p">)</span>
 </code></pre></div></div>
-<p><img src="http://localhost:4000/assets/images/2017-11-27-upscale.png" alt="upscale" /></p>
+<p><img src="http://0.0.0.0:4000/assets/images/2017-11-27-upscale.png" alt="upscale" /></p>
 
 <p>The slope of the local regression is quite high around 0, indicating that the estimates should be scaled up around 0, whereas further away from 0 the slope is lower.</p>
 
