@@ -1,0 +1,46 @@
+---
+layout: post
+title:  "Nonparametric delta method and the infinitesimal jackknife"
+date:   2018-05-30 00:00:00 -0400
+categories: statistics
+---
+
+### Delta method
+#### a. The parametric delta method:
+- Suppose we're estimating some parameter $$\theta$$, and our estimate is consistent and asymptotically normal (by central limit theorem or whatever): $$\hat{\theta} \rightarrow \theta$$, and $$\sqrt{n}(\hat{\theta}-\theta) \Rightarrow Z$$ where $$Z\sim N(0, \Sigma)$$ 
+- So, we can approximate the true parameter via $$\theta \approx \hat{\theta}$$ and the distribution of our estimator via $$\sqrt{n}(\hat{\theta} - \theta) \approx \hat{Z}$$ where $$\hat{Z}=N(0, \hat{\Sigma})$$  (we're also estimating $$\Sigma$$).
+  - e.g. $$\theta$$ is the population mean, then LLN and CLT give you $$\hat{\theta}$$ and $$\hat{Z}$$ 
+- Often, what we care about is actually some transformation $$\phi = T(\theta)$$, and it's not as easy to get the corresponding estimates $$\hat{\phi}$$ and $$\sqrt{n}(\hat{\phi}-\phi)$$ (e.g. because you can't directly apply CLT and LLN because $$\phi$$ is not an average)
+- So instead, we just plug in the estimator of $$\theta$$ into $$T$$ to get $$\hat{\phi} := T(\hat{\theta})$$, and use the delta method to get $$\sqrt{n}(\hat{\phi}-\phi) = T'(\theta)\cdot Z$$, after which we plug in estimates of $$\phi$$ and $$Z$$ to get $$\sqrt{n}(\hat{\phi}-\phi) \approx T'(\hat{\theta})\cdot \hat{Z}$$
+
+The parametric delta method says if $$\sqrt{n}(\hat{\theta} - \theta) \rightarrow Z$$ and $$\phi=T(\theta)$$, then $$\sqrt{n}(\hat{\phi}-\phi) \rightarrow T'(\theta)\cdot Z$$.
+
+This is basically just a Taylor expansion: 
+- $$T(\hat{\theta}) \approx T(\theta) + T'(\theta)(\hat{\theta}-\theta)$$,
+- so, $$\sqrt{n}(T(\hat{\theta}) - T(\theta)) \approx T'(\theta)\sqrt{n}(\hat{\theta}-\theta) \Rightarrow T'(\theta)\cdot Z$$
+
+Or, in words:
+- for $$\hat{\theta}$$ near  $$\theta$$, $$T$$ is approximately linear: $$T(\hat{\theta}) \approx T(\theta) + T'(\theta)(\hat{\theta}-\theta)$$
+- thus, for a given $$\hat{\theta}$$, $$\sqrt{n}(T(\hat{\theta}) - T(\theta)) \approx T'(\theta)\sqrt{n}(\hat{\theta}-\theta)$$
+- so, let's sample a random direction $$z$$ from $$Z=\sqrt{n}(\hat{\theta}-\theta)$$, then compute the directional derivative of $$T$$ in this direction, which is $$T'(\theta) \cdot z$$, which is approximately the corresponding value of $$\sqrt{n}(\hat{\phi}-\phi)$$
+- this then allows us to go from a distribution for $$\sqrt{n}(\hat{\theta}-\theta)$$ to a distribution for $$\sqrt{n}(\hat{\phi}-\phi)$$
+
+
+#### b. The nonparametric delta method
+The above applies when we can express $$\phi$$ as a function of some nice finite-dimensional parameter.  More generally, we might care about estimating some $$\phi$$ that's a some function of an entire distribution:  $$\phi = T(\mathbb{P})$$.  In this case, we should be able to essentially do the same thing as the parametric case:
+1. get some estimate $$\hat{\mathbb{P}}$$ for $$\mathbb{P}$$
+2. characterize $$\sqrt{n}(\hat{\mathbb{P}} - \mathbb{P})$$
+3. approximate $$\sqrt{n}(\hat{\phi} - \phi)$$ by sampling some random direction from $$\sqrt{n}(\hat{\mathbb{P}} - \mathbb{P})$$, and then computing the directional derivative in that direction
+4. the distribution of this random directional derivative will then be the resulting distribution of $$\sqrt{n}(\hat{\phi}-\phi)$$
+
+Here's how to do it:
+1. use the empirical distribution $$\mathbb{P}_n$$ as an estimate for $$\hat{\mathbb{P}}$$
+2. ?
+3. compute the directional derivative
+4.  dogs
+
+
+
+### References
+- Nonparametric delta method: All the top hits on google for 'nonparametric delta method', all of which are seemingly based on chapter 20 of Van der Vaart's Asymptotic Statistics.
+-  
