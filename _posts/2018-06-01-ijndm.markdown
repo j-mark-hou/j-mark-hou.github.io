@@ -5,42 +5,139 @@ date:   2018-05-30 00:00:00 -0400
 categories: statistics
 ---
 
-### Delta method
-#### a. The parametric delta method:
+### The parametric delta method
 - Suppose we're estimating some parameter $$\theta$$, and our estimate is consistent and asymptotically normal (by central limit theorem or whatever): $$\hat{\theta} \rightarrow \theta$$, and $$\sqrt{n}(\hat{\theta}-\theta) \Rightarrow Z$$ where $$Z\sim N(0, \Sigma)$$ 
 - So, we can approximate the true parameter via $$\theta \approx \hat{\theta}$$ and the distribution of our estimator via $$\sqrt{n}(\hat{\theta} - \theta) \approx \hat{Z}$$ where $$\hat{Z}=N(0, \hat{\Sigma})$$  (we're also estimating $$\Sigma$$).
   - e.g. $$\theta$$ is the population mean, then LLN and CLT give you $$\hat{\theta}$$ and $$\hat{Z}$$ 
-- Often, what we care about is actually some transformation $$\phi = T(\theta)$$, and it's not as easy to get the corresponding estimates $$\hat{\phi}$$ and $$\sqrt{n}(\hat{\phi}-\phi)$$ (e.g. because you can't directly apply CLT and LLN because $$\phi$$ is not an average)
-- So instead, we just plug in the estimator of $$\theta$$ into $$T$$ to get $$\hat{\phi} := T(\hat{\theta})$$, and use the delta method to get $$\sqrt{n}(\hat{\phi}-\phi) = T'(\theta)\cdot Z$$, after which we plug in estimates of $$\phi$$ and $$Z$$ to get $$\sqrt{n}(\hat{\phi}-\phi) \approx T'(\hat{\theta})\cdot \hat{Z}$$
+- Often, what we care about is actually some transformation $$\phi = T(\theta)$$, and iT^\primes not as easy to get the corresponding estimates $$\hat{\phi}$$ and $$\sqrt{n}(\hat{\phi}-\phi)$$ (e.g. because you can't directly apply CLT and LLN because $$\phi$$ is not an average)
+- So instead, we just plug in the estimator of $$\theta$$ into $$T$$ to get $$\hat{\phi} := T(\hat{\theta})$$, and use the delta method to get $$\sqrt{n}(\hat{\phi}-\phi) = T^\prime(\theta)\cdot Z$$, after which we plug in estimates of $$\phi$$ and $$Z$$ to get $$\sqrt{n}(\hat{\phi}-\phi) \approx T^\prime(\hat{\theta})\cdot \hat{Z}$$
 
-The parametric delta method says if $$\sqrt{n}(\hat{\theta} - \theta) \rightarrow Z$$ and $$\phi=T(\theta)$$, then $$\sqrt{n}(\hat{\phi}-\phi) \rightarrow T'(\theta)\cdot Z$$.
+The parametric delta method says if $$\sqrt{n}(\hat{\theta} - \theta) \rightarrow Z$$ and $$\phi=T(\theta)$$, then $$\sqrt{n}(\hat{\phi}-\phi) \rightarrow T^\prime(\theta)\cdot Z$$.
 
 This is basically just a Taylor expansion: 
-- $$T(\hat{\theta}) \approx T(\theta) + T'(\theta)(\hat{\theta}-\theta)$$,
-- so, $$\sqrt{n}(T(\hat{\theta}) - T(\theta)) \approx T'(\theta)\sqrt{n}(\hat{\theta}-\theta) \Rightarrow T'(\theta)\cdot Z$$
+- $$T(\hat{\theta}) \approx T(\theta) + T^\prime(\theta)(\hat{\theta}-\theta)$$,
+- so, $$\sqrt{n}(T(\hat{\theta}) - T(\theta)) \approx T^\prime(\theta)\sqrt{n}(\hat{\theta}-\theta) \Rightarrow T^\prime(\theta)\cdot Z$$
 
 Or, in words:
-- for $$\hat{\theta}$$ near  $$\theta$$, $$T$$ is approximately linear: $$T(\hat{\theta}) \approx T(\theta) + T'(\theta)(\hat{\theta}-\theta)$$
-- thus, for a given $$\hat{\theta}$$, $$\sqrt{n}(T(\hat{\theta}) - T(\theta)) \approx T'(\theta)\sqrt{n}(\hat{\theta}-\theta)$$
-- so, let's sample a random direction $$z$$ from $$Z=\sqrt{n}(\hat{\theta}-\theta)$$, then compute the directional derivative of $$T$$ in this direction, which is $$T'(\theta) \cdot z$$, which is approximately the corresponding value of $$\sqrt{n}(\hat{\phi}-\phi)$$
+- for $$\hat{\theta}$$ near  $$\theta$$, $$T$$ is approximately linear: $$T(\hat{\theta}) \approx T(\theta) + T^\prime(\theta)(\hat{\theta}-\theta)$$
+- thus, for a given $$\hat{\theta}$$, $$\sqrt{n}(T(\hat{\theta}) - T(\theta)) \approx T^\prime(\theta)\sqrt{n}(\hat{\theta}-\theta)$$
+- so, let's sample a random direction $$z$$ from $$Z=\sqrt{n}(\hat{\theta}-\theta)$$, then compute the directional derivative of $$T$$ in this direction, which is $$T^\prime(\theta) \cdot z$$, which is approximately the corresponding value of $$\sqrt{n}(\hat{\phi}-\phi)$$
 - this then allows us to go from a distribution for $$\sqrt{n}(\hat{\theta}-\theta)$$ to a distribution for $$\sqrt{n}(\hat{\phi}-\phi)$$
 
 
-#### b. The nonparametric delta method
-The above applies when we can express $$\phi$$ as a function of some nice finite-dimensional parameter.  More generally, we might care about estimating some $$\phi$$ that's a some function of an entire distribution:  $$\phi = T(\mathbb{P})$$.  In this case, we should be able to essentially do the same thing as the parametric case:
-1. get some estimate $$\hat{\mathbb{P}}$$ for $$\mathbb{P}$$
-2. characterize $$\sqrt{n}(\hat{\mathbb{P}} - \mathbb{P})$$
-3. approximate $$\sqrt{n}(\hat{\phi} - \phi)$$ by sampling some random direction from $$\sqrt{n}(\hat{\mathbb{P}} - \mathbb{P})$$, and then computing the directional derivative in that direction
-4. the distribution of this random directional derivative will then be the resulting distribution of $$\sqrt{n}(\hat{\phi}-\phi)$$
+### The nonparametric delta method
+The above applies when we can express $$\phi$$ as a function of some nice finite-dimensional parameter.  More generally, we might care about estimating some $$\phi$$ thaT^\primes a some function of an entire distribution:  $$\phi = T(\mathbb{P})$$.  In this case, we should be able to essentially do the same thing as the parametric case:
+1. approximate $$\phi = T(\mathbb{P})$$ with $$\hat{\phi} = T(\hat{\mathbb{P}})$$
+3. approximate $$\sqrt{n}(\hat{\phi} - \phi) = \sqrt{n}(T(\hat{\mathbb{P}}) - T(\mathbb{P}))$$ with some directional derivative via Taylor expansion
+2. characterize the asymptotic distribution of this directional derivative
+4. approximate this asymptotic distribution to get $$\sqrt{n}(\hat{\phi}-\phi)$$
 
-Here's how to do it:
-1. use the empirical distribution $$\mathbb{P}_n$$ as an estimate for $$\hat{\mathbb{P}}$$
-2. ?
-3. compute the directional derivative
-4.  dogs
 
+To be a bit more detailed about these steps:
+1. approximate $$\phi = T(\mathbb{P})$$ with $$\hat{\phi} = T(\hat{\mathbb{P}})$$:
+  - this should be fine so long as $$T$$ is continuous (for some reasonable definition of continuity on this space)
+2. approximating $$\sqrt{n}(\hat{\phi}-\phi)$$ with directional derivative:
+    - we need some notion of derivative for functions of distributions
+    - in the nonparametric case, the analog to the parameter in the parametric case is the distribution itself
+    - so the relevant space we're operating in is the space of probability distributions
+    - a direction is just an element of this space = a probability distribution
+    - so, let $$G$$ and $$H$$ be distributions, and let $$(1-t)G+tH$$ denote the distribution generated by taking $$G$$, removing a bit of probability from it, and then replacing that bit with $$H$$
+        - The 'directional derivative' of $$T$$ at $$G$$ in the direction $$H$$ is defined as:
+          $$\begin{equation}
+          T^\prime_{G}(H) := \lim_{t\rightarrow 0} \frac{T((1-t)G+tH)-T(G)}{t}
+          \tag{1}
+        \label{derivdef}
+          \end{equation}$$
+        - $$T$$ is defined as 'differentiable' at $$G$$ if:
+        $$\begin{equation}
+        \quad T^\prime_{G}(H) \text{ is linear and continuous in } H
+          \tag{2}
+        \label{differentiabledef}
+        \end{equation}$$
+    - note that these definitions are very similar to their finite-dimensional counterparts
+    - as a result, it seems pretty reasonable for us to do a Taylor expansion of $$T(\hat{\mathbb{P}})$$ around $$\mathbb{P}$$, which gives us
+        $$\begin{equation} 
+        T(\hat{\mathbb{P}}) \approx T(\mathbb{P})) + T^\prime_{\mathbb{P}}(\hat{\mathbb{P}}) \Rightarrow \sqrt{n}(T(\hat{\mathbb{P}}) - T(\mathbb{P})) \approx  \sqrt{n}T^\prime_{\mathbb{P}}(\hat{\mathbb{P}}) 
+        \end{equation}$$
+    as desired
+3. characterizing the asymptotic distribution of $$\sqrt{n}T^\prime_{\mathbb{P}}(\hat{\mathbb{P}})$$:
+    - note that we can write a distribution as a weighted sum of point masses, so that 
+     $$\hat{\mathbb{P}} = \int d\hat{\mathbb{P}}(x) \delta_x$$ where $$\delta_x$$ is the delta distribution (with all of its mass concentrated at $$x$$)
+    - linearity of $$T^\prime_{\mathbb{P}}(\hat{\mathbb{P}})$$ (which we required above) then implies
+    $$T^\prime_{\mathbb{P}}(\hat{\mathbb{P}}) = \int d\hat{\mathbb{P}}(x) T^\prime_{\mathbb{P}}(\delta_x) = \frac{1}{n}\sum_iT^\prime_{\mathbb{P}}(\delta_{x_i})$$
+    - this thing is an average, so we're going to just do the CLT
+    - in order to do the CLT, we need the expectation and variance of 
+     $$T^\prime_{\mathbb{P}}(\delta_{X})$$ for $$X\sim \mathbb{P}$$
+    - the expectation:
+        - by linearity of $$T^\prime$$ and $$\int d \mathbb{P}(x) \delta_x = \mathbb{P}$$, we have that
+        $$ \mathbb{E}[T^\prime_{\mathbb{P}}(\delta_{X})] = \int d\mathbb{P}(x)T^\prime_{\mathbb{P}}(\delta_{x}) = T^\prime_{\mathbb{P}}({\mathbb{P}}) $$ 
+        - then, the definition of the directional derivative gives us 
+        $$ T^\prime_{\mathbb{P}}({\mathbb{P}}) = \lim_{t\rightarrow 0} \frac{T((1-t)\mathbb{P}+t\mathbb{P})-T(\mathbb{P})}{t} = \lim_{t\rightarrow 0} \frac{T(\mathbb{P})-T(\mathbb{P})}{t} = 0$$
+        - so the expectation is $$0$$
+    - the variance: we'll just denote it by $$V:= \mathbb{V}(T^\prime_\mathbb{P}(\delta_{X}))) = \int d\mathbb{P}(x)(T^\prime_\mathbb{P}(\delta_{x}))^2 $$
+        - we'll compute this on a case-by-case basis for each $$T$$
+    - so, the CLT now gives us
+    $$\sqrt{n}\frac{1}{n}\sum_i\left(T^\prime_{\mathbb{P}}(\delta_{x_i}) - 0\right) \Rightarrow \mathcal{N}(0,V)$$ as desired
+4. approximate this asymptotic distribution:
+    - $$V$$ in the asymptotic distribution above require knowing the true $$\mathbb{P}$$, so instead we'll just estimate it by plugging in $$\hat{\mathbb{P}}$$:\\
+    $$\displaystyle\hat{V} = \int d\mathbb{\hat{P}}(x)(T^\prime_\hat{\mathbb{P}}(\delta_{x}))^2 = \frac{1}{n}\sum_{i=1}^n(T^\prime_\hat{\mathbb{P}}(\delta_{x}))^2$$
+
+Thus, we have the nonparametric delta method: for $$\phi = T(\mathbb{P})$$ with $$T$$ sufficiently nice:
+$$\begin{equation}
+\phi \approx \hat{\phi} = T(\hat{\mathbb{P}}), \quad
+\sqrt{n}(\hat{\phi} - \phi) \approx \mathcal{N}(0,\hat{V}),
+\text{ where } \hat{V} = \frac{1}{n}\sum_{i=1}^n(T^\prime_\hat{\mathbb{P}}(\delta_{x}))^2
+\tag{3}
+\label{nonparametricdeltamethod}
+\end{equation}$$
+
+
+### Infinitesimal jackknife
+
+The nonparametric delta method is also called the 'infinitesimal jackknife', since it actually looks like an ordinary jackknife, except infinitesimal.  We'll make the analogy more clear below.
+
+The ordinary jackknife estimates $$\phi=T(\mathbb{P})$$ and $$\sqrt{n}(\hat{\phi} - \phi)$$ by:
+- generating $$n$$ estimates of $$\phi$$, each of which involves doing some bias correction using a leave-one-out sample of the data
+- averaging these $$n$$ estimates to approximate $$\phi$$
+- using the distribution of these $$n$$ estimates to approximate $$\sqrt{n}(\hat{\phi} - \phi)$$
+
+More precisely:
+- the leave-one-out distribution resulting from just removing a given observation $$x_i$$ can be written as
+$$\hat{\mathbb{P}}_{(i)} := (1-t) \hat{\mathbb{P}} + t \delta_{x_i}$$ with $$t:=-1/(n-1)$$
+- we can generate an estimate of $$\phi$$ by applying $$T$$ to this leave-one-out distribution, and then using the resulting thing to de-bias the main one:
+$$\begin{equation}
+\displaystyle\hat{\phi}_{(i)} := T(\hat{\mathbb{P}}) - \frac{T(\hat{\mathbb{P}}) - T(\hat{\mathbb{P}}_{(i)})}{t}
+\tag{4}
+\label{pseudovalue}
+\end{equation}$$
+    - note that if you substitute in for $$t$$, you get $$nT(\hat{\mathbb{P}}) - (n-1)T(\hat{\mathbb{P}}_{(i)})$$, which is $$n$$ times an estimate minus $$n-1$$ times another one, so the scale seems right
+}
+- then, you average these debiased leave-one-out estimates to get your final estimator for $$\phi$$, :\\
+$$\begin{equation}
+\displaystyle \hat{\phi}_{(.)} := \frac{1}{n}\sum_i\hat{\phi}_{(i)}
+\tag{5}
+\label{OJKEstimate}
+\end{equation}$$
+- finally, assume that these $$\hat{\phi}_{(i)}$$ are independent and compute/approximate the asymptotic distribution as you normally would:\\
+$$\begin{equation}
+\displaystyle\sqrt{n}\left(\hat{\phi}_{(.)} - \phi\right) \approx \mathcal{N}(0, \hat{V}), 
+\quad  \hat{V} = \frac{1}{n}\sum_i\left(\hat{\phi}_{(i)}-\hat{\phi}_{(.)}\right)^2 \approx \mathbb{V} \hat{\phi}_{(i)}
+\tag{6}
+\label{OJKVariance}
+\end{equation}$$
+
+To do the infintesimal jackknife, the intuition is the same, except that instead of omitting each observation, we downweight it by some small amount.  This is literally just taking $$t\rightarrow 0$$ instead of the fixed $$t=-1/(n-1)$$ we had above:
+- equation \eqref{pseudovalue} from above would instead become\\
+ $$\displaystyle\hat{\phi}_{(i)} := T(\hat{\mathbb{P}}) - \lim_{t\rightarrow 0}\frac{T(\hat{\mathbb{P}}) - T\left((1-t) \hat{\mathbb{P}}+t\delta_{x_i}\right)}{t} = T(\hat{\mathbb{P}}) - T^\prime_{\hat{\mathbb{P}}}(\delta_{x_i})$$
+- as a result, \eqref{OJKEstimate} becomes a bit simpler:
+$$\displaystyle \hat{\phi}_{(.)} := \frac{1}{n}\sum_i\hat{\phi}_{(i)} = T(\hat{\mathbb{P}}) - \frac{1}{n}\sum_iT^\prime_{\hat{\mathbb{P}}}(\delta_{x_i}) = T(\hat{\mathbb{P}}) - T^\prime_{\hat{\mathbb{P}}}(\hat{\mathbb{P}}) = T(\hat{\mathbb{P}}) $$ since  $$T^\prime_{\hat{\mathbb{P}}}(\hat{\mathbb{P}})=0$$
+- and the variance estimator in \eqref{OJKVariance} becomes:\\
+$$\displaystyle \hat{V} = \frac{1}{n}\sum_i\left(\hat{\phi}_{(i)}-\hat{\phi}_{(.)}\right)^2 =
+\frac{1}{n}\sum_i (T^\prime_{\hat{\mathbb{P}}}(\delta_{x_i}))^2$$
+
+Note that these quantities exactly to the nonparametric delta method ones in \eqref{nonparametricdeltamethod}.  Thus, the infinitesimal jackknife is exactly the nonparametric delta method, and the ordinary jackknife is an approximation of it.
 
 
 ### References
-- Nonparametric delta method: All the top hits on google for 'nonparametric delta method', all of which are seemingly based on chapter 20 of Van der Vaart's Asymptotic Statistics.
--  
+- All the top hits on google for 'nonparametric delta method', all of which are seemingly based on chapter 20 of [Van der Vaart's Asymptotic Statistics](https://books.google.com/books/about/Asymptotic_Statistics.html?id=udhfQgAACAAJ&hl=en).
+- Jaeckel's [original paper on the infinitesimal jackknife](http://faculty.washington.edu/fscholz/Reports/InfinitesimalJackknife.pdf).
