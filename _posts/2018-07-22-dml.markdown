@@ -5,7 +5,7 @@ date:   2018-07-22 00:00:00 -0400
 categories: statistics, machine learning
 ---
 
-[Interesting paper by some fairly serious MIT-related econometrics/statistics people](https://arxiv.org/abs/1608.00060) (let's call this paper DML) on how to estimate some low-dimensional parameters of interest in the presence of high-dimensional nuisance parameters.  The intuition is quite nice, though the actual theoretical results are maybe not as useful in practice as they might appear at first.
+[Interesting paper by some fairly serious MIT-related econometrics/statistics people](https://arxiv.org/abs/1608.00060) (let's call this paper DML) on how to estimate some low-dimensional parameters of interest in the presence of high-dimensional nuisance parameters.  The intuition is quite nice, though the actual theoretical results are maybe not as generally applicable as they might appear at first.
 
 ### I. Setup and results
 - we want to estimate some finite-dimensional parameter $$\theta$$
@@ -22,25 +22,27 @@ $$
 $$
 where data $$W$$ is generated IID from some distribution $$\mathbb{P}$$, and $$\mathbb{E}$$ denote the expectation wrt $$\mathbb{P}$$
 - for a concrete example, think about the case of a simple linear regression:
-	- $$\phi$$ is the derivative of the least squares objective
-	- $$\theta$$ and $$\eta$$ are the coefficients
-	- \eqref{momentcondition} is just the first order conditions, which holds only at the true parmeter values
+	- $$\phi$$ would be the derivative of the least squares objective
+	- $$\theta$$ and $$\eta$$ would be the coefficients
+	- \eqref{momentcondition} would be the first order conditions, which hold only at the true parmeter values
 
 DML recommends this procedure: 
 1. use a score $$\phi$$ that satisfies a **Neyman orthogonality** condition:
 	- the directional derivitive $$\partial_{\eta}\mathbb{E}[\phi(W,\theta_0,\eta_0)][\eta-\eta_0] = 0$$ for every $$\eta$$ 
-	- where $$\partial_{\eta}f(x_0)[x-x_0] := \partial_t f(x_0+t(x-x_0)) $$
+	- where $$\partial_{\eta}f(x_0)[x-x_0] := \partial_t f(x_0+t(x-x_0)) $$ is the directional derivative
 	- often, you can transform your $$\phi$$ so that it satisfies Neyman orthogonality
-2. do **Cross-fitting**, where you split your data into a main sample and an auxiliary sample, and:
+2. do **cross-fitting**, where you split your data into a main sample and an auxiliary sample, and:
 	- use the auxiliary sample to train some fancy machine learning model to predict the nuisance parameter $$\eta$$
-	- on the main sample, use this trained model to get $$\hat{\eta}$$, and then plug this into the empirical analogue of \eqref{momentcondition} and solve for $$\theta$$, so that
-	 $$
-	 \mathbb{E}_n[\phi(W, \hat{\theta}, \hat{\eta})] = 0
-	 $$
-	 implicitly defines $$\hat{\theta}$$
+	- on the main sample:
+		- use this trained model to get $$\hat{\eta}$$
+		- then plug this into the empirical analogue of \eqref{momentcondition} and solve for $$\theta$$, so that
+		 $$
+		 \mathbb{E}_n[\phi(W, \hat{\theta}, \hat{\eta})] = 0
+		 $$
+		 implicitly defines $$\hat{\theta}$$ (where $$\mathbb{E}_n$$ here denotes averaging over the main sample)
 3. this $$\hat{\theta}$$ will then be $$\sqrt{n}$$-consistent for $$\theta_0$$
 
-These two things (Neyman orthogonality and cross fitting) are what gives us $$\sqrt{n}$$-consistency:
+These two things (Neyman orthogonality and cross-fitting) are what gives us $$\sqrt{n}$$-consistency:
 - Neyman orthogonality makes $$\phi$$ insensitive to the nuisance parameter $$\eta$$ near the truth, so that plugging in an estimate of $$\eta$$ won't hurt too much.  
 - Cross-fitting (as opposed to using the same data for both steps above) gives us a better estimate of $$\hat{\eta}$$, since the main sample where we plug $$\hat{\eta}$$ in to $$\phi$$ and then estimate $$\hat{\theta}$$ isn't use when training the fancy ML model for predicting $$\phi$$ and thus $$\hat{\eta}$$ on the sample shouldn't suffer from much overfitting.
 
@@ -50,7 +52,7 @@ We'll give a slightly deeper intuitive understanding for where these two conditi
 ### II. Intuition
 
 #### II.1. First, without the nuisance parameter:
-If we knew the true $$\theta_0$$, we could just plug it into the empirical analogue of \eqref{momentcondition} and solve for $$\theta$$ to get an estimate $$\hat{\theta}_n$$:
+If we knew the true value of the nuisance parameter $$\eta_0$$, we could just plug it into the empirical analogue of \eqref{momentcondition} and solve for $$\theta$$ to get an estimate $$\hat{\theta}_n$$:
 
 $$ \mathbb{E}_n[\phi(X, \hat{\theta}_n, \eta_0)] = 0 $$
 
@@ -176,9 +178,9 @@ So, DML doesn't actually provide much in the way of theoretical guarantees for e
 #### III.2. The Neyman orthogonalization procedure
 The DML procedure requires that we have some score $$\phi$$ that satisfies Neyman orthogonality.  This is generically not the case, so we would like to have some way of transforming an arbitrary $$\phi$$ into something that satisfies Neyman orthogonality.  The DML paper provides illustrations of how to do this for a variety of different cases, and applies them to specific leading examples that economists find interesting.  However, it's not entirely clear how generalizable these procedures are, especially when $$\eta$$ is a complicated thing we're approximating by general ML methods.
 
-For example, the 'concentrating-out' approach for Neyman orthogonalization in the case of M-estimation with infinite-dimensional nuisance parameters (section 2.23 in the DML paper) requires computing the optimal nuisance parameter $$\eta$$ as a function of the parameter of interest $$\theta$$, and then computing the derivative wrt $$\theta$$ of this function-valued mapping from $$\theta$$ to optimal $$\eta$$.  This approach is then applied to the leading example of interest (partially linear models with nuisance parameter) where the mapping from $$\theta$$ to optimal $$\eta$$ is fairly easy to compute and differentiate, due to the particular functional forms involved.
+For example, the 'concentrating-out' approach for Neyman orthogonalization in the case of M-estimation with infinite-dimensional nuisance parameters (section 2.23 in the DML paper) requires computing the optimal nuisance parameter $$\eta$$ as a function of the parameter of interest $$\theta$$, and then computing the derivative wrt $$\theta$$ of this function-valued mapping from $$\theta$$ to optimal $$\eta$$.  This approach is then applied to the leading example of interest (partially linear models with nuisance parameter) where the mapping from $$\theta$$ to optimal $$\eta$$ is fairly easy to compute and differentiate, due to the particular functional forms involved.  It seems like in most cases that are less straightforward, it's not going to be so easy / possible to do this.
 
-Overall, it doesn't appear there's a mechanical way to orthogonalize any score function $$\phi$$, and this instead has to be done on a case-by-case basis.  As a result, we'll need to do some manual orthogonalization before we apply do the DML procedure.
+The DML paper presents a variety of other ways to orthogonalize stuff, and works out some more economics-relevant examples.  However, in general cases with high-dimensional nuisanace parameters, it doesn't appear that there's a mechanical way to orthogonalize the score.  As a result, it may be necessary to manually orthogonalize before the DML procedure can be applied.
 
 
 
