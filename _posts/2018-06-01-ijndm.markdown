@@ -43,7 +43,7 @@ $$\begin{equation}
 \label{differentiabledef}
 \end{equation}$$
 
-Two few useful properties:
+Two useful properties:
 - for any for any $$G$$, the direction derivative at $$G$$ in the direction $$G$$ is $$0$$:
 $$
 \begin{equation}
