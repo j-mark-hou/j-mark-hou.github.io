@@ -1,7 +1,7 @@
 ---
 layout: post
-title:  "Nonparametric / deep instrumental variables"
-date:   2018-09-06 22:00:00 -0400
+title:  "Nonparametric / 'deep' instrumental variables"
+date:   2018-07-27 22:00:00 -0400
 categories: statistics
 ---
 
@@ -124,7 +124,7 @@ Overall, general theory for identification/estimation of nonparametric IV is som
 
 
 ### Deep IV
-Thankfully, we're now at a point in history where it you can often just throw function approximators at various problems and have it work pretty well even if it's not entirely clear why.  So, even with a lack of theoretical guarantees about identification / estimation, it's not a bad idea to just go ahead and just try to do something reasonable, and hope that things work out.
+Thankfully, we're now at a point in history where it's not too insane to just throw function approximators at various problems and have it work pretty well even if it's not entirely clear why.  So, even with a lack of theoretical guarantees about identification / estimation, it's not a bad idea to just go ahead and just try to do something reasonable, and hope that things work out.
 
 The Deep IV paper proposes to do a very reasonable thing:
 1. Do standard supervised learning to estimate $$F(x\mid z)$$.  This is the 'first stage'.
