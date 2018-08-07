@@ -46,14 +46,14 @@ $$
     - This again follows by convexity of $$L$$ and first order condition
     - For intuition, note that if $$\alpha$$ is close to 1, then $$L$$ essentially only penalizes situtations where the real $$y$$ exceeds the prediction $$\tilde{y}$$, so that the argmin $$\tilde{y}$$ should be close to the max value that $$Y$$ can take, which corresponds to a quantile of close to 1.
 
-So, if we want to find $$\hat{f}(x)$$ that approximates $$f(x)$$, a quite reasonable thing to do is to try to pick $$\hat{f}$$ out of some class of functions $$\mathcal{F}$$ to minimize the corresponding empirical average (or sum) of $$L$$ over our data:
+So, if we want to find $$\hat{f}(x)$$ that approximates $$f(x)$$, a quite reasonable thing to do is to try to pick $$\hat{f}$$ out of some class of functions $$\mathcal{F}$$ to minimize the corresponding empirical average (or equivalently, the sum) of $$L$$ over our data:
 
 $$ \displaystyle
 \hat{f} = \arg\min_{\tilde{f}\in\mathcal{F}} \sum_i L\left(\tilde{f}(x_i), y_i\right)
 $$
 
 #### Boosting
-Alright, so let's say we're optimiziong some $$L$$.  We'll typically want to do this estimation fairly flexibly, so we'll want $$\mathcal{F}$$ to be fairly complex (as opposed to e.g. considering only linear functions), but complex $$\mathcal{F}$$ makes it harder to do the optimization.  Boosting circumvents this issue by iteratively building up $$\hat{f}$$ via a sum of 'base learners' ( = simple functions).  This approach allows $$\mathcal{F}$$ to be quite complex (as it's a product of a bunch of simple function spaces), but at the cost of making the $$\arg\min$$ approximate:
+Alright, so let's say we're estimating $$\hat{f}$$ by optimizing some empirical $$L$$.  We'll typically want to do this estimation fairly flexibly, so we'll want $$\mathcal{F}$$ to be fairly complex (as opposed to e.g. considering only linear functions), but complex $$\mathcal{F}$$ makes it harder to do the optimization.  'Boosting' is a general machine learning procedure that circumvents this issue by iteratively building up $$\hat{f}$$ via a sum of 'base learners' ( = simple functions).  This approach allows $$\mathcal{F}$$ to be quite complex (as it's a product of a bunch of simple function spaces), but at the cost of making the $$\arg\min$$ approximate:
 
 Boosting heuristic:
 1. Define a space of base learners $$\tilde{\mathcal{F}}$$ 
@@ -70,7 +70,7 @@ Boosting heuristic:
 So, boosting amounts to incrementally building up an estimate $$\hat{f}$$ of $$f$$ by doing a bunch of small improvements.  Note that the model space here for $$\hat{f}$$ can be highly complex, as sums of a bunch of simple functions can be quite complicated.  However, the process involved in getting each $$\hat{f}_t(x_i)$$ is still (by assumption) tractable.
 
 #### Tree boosting
-Typically in practice, the space of base learners $$\tilde{\mathcal{F}}$$ is some set of binary tree with some constraint on the max depth or max number of nodes.  Furthermore, the base learners $$\hat{f}_t$$ are chosen by building the trees up greedily node-by-node, as opposed to globally optimized as in \eqref{baselearning0}, since doing the latter is too complicated.
+Typically in practice, the space of base learners $$\tilde{\mathcal{F}}$$ is some set of binary tree with some constraint on the max depth or max number of nodes.  Furthermore, the base learners $$\hat{f}_t$$ are chosen by building the trees up greedily node-by-node, as opposed to globally optimized as in \eqref{baselearning0}, since doing that would be too computationally intensive.
 
 Tree boosting:
 1. Define a space of base learners $$\tilde{\mathcal{F}}$$ = all trees of a certain depth or node count
@@ -105,7 +105,7 @@ Note that in order to determine the optimal splits, the algorithm tests every po
 
 
 #### Gradient tree boosting
-The fact that the splitting procedure 2.2 above appears to require re-computing the loss functions for every dimension of $$x$$ and for every potential cutoff point seems like it would somewhat limit the applicability of tree boosting, espcially for large data sets.  Probably the main innovation of gradient boosting as implemented initially in XGBoost and later in LightGBM/others (and certainly responsible for the popularity of these packages) is how to resolve this issue by using a second-order approximation of the loss function $$L$$.
+The fact that the splitting procedure 2.2 above appears to require re-computing the loss functions for every dimension of $$x$$ and for every potential cutoff point seems like it would somewhat limit the applicability of tree boosting, espcially for large data sets.  **Probably the main innovation of gradient boosting as implemented initially in XGBoost and later in LightGBM/others (and certainly responsible for the popularity of these packages) is how to resolve this issue by using a second-order approximation of the loss function $$L$$.**
 
 Letting $$\displaystyle\hat{f}^t := \sum_{t^\prime<t}\hat{f}_{t^\prime}(x_i)$$, for some set of observations $$B$$ we can write
 
@@ -146,7 +146,7 @@ $$
 
 which implies that the gain in splitting a set of observations $$A$$ into two parts, $$B$$ and $$C$$ would purely be a function of the first and second derivatives of $$L$$  $$\sum_{i\in B} \partial_1L\left(\hat{f}^t(x_i) , y_i\right)$$ and $$\sum_{i\in B}\partial_1^2L\left(\hat{f}^t(x_i) , y_i\right)$$.
 
-Note that this allows the algorithm to just take a single pass through the data for each dimension of $$x$$, rather than having to do so for each (dimension, cutoff point) pair.  Let $$j$$ be the dimension and $$c$$ the cutpoint, and let $$B:=\{i\in A : x^j_i<c\}$$ and $$C:= A\backslash C$$.  Suppose we've calculated the corresponding sum over hessians and gradients for observations in $$B$$ and $$C$$ (from which computing the $$\hat{y}$$ and $$l$$ are $$O(1)$$).  Then, when we move onto the next-largest cutpoint $$c'$$, the corresponding $$B'$$ will differ from $$B$$ only in a few additional points, and so that the first and second derivatives can be updated by simply adding the values of these new points.  As the cutoff points go from smallest to biggest, extra observations are incrementally added to $$B$$, so that only a single pass through the data is required.
+Note that this allows the algorithm to just take a single pass through the data for each dimension of $$x$$, rather than having to do so for each (dimension, cutoff point) pair.  Let $$j$$ be the dimension and $$c$$ the cutpoint, and let $$B:=\{i\in A : x^j_i<c\}$$ and $$C:= A\backslash C$$.  Suppose we've calculated the corresponding sum over hessians and gradients for observations in $$B$$ and $$C$$ (from which computing the $$\hat{y}$$ and $$l$$ are $$O(1)$$).  Then, when we move onto the next-largest cutpoint $$c'$$, the corresponding $$B'$$ will differ from $$B$$ only in a few additional points, and so that the first and second derivatives can be updated by simply adding the values of these new points.  As the cutoff points go from smallest to biggest, extra observations are incrementally added to $$B$$, so that only a single pass through the data is required for each dimension of $$x$$.
 
 So, given that this formulation of the problem allows a single pass through the data per dimension, as opposed to every (dimesion, cutoff) pair, the set of all the splitting needed for building $$T$$ trees becomes $$O(THND)$$ instead of the $$O(THNDK)$$ above.  This is significant, as $$K\geq255$$.
 
@@ -154,11 +154,11 @@ So, given that this formulation of the problem allows a single pass through the 
 This is implemented in LightGBM in the [`FindBestThresholdSequence()` function](https://github.com/Microsoft/LightGBM/blob/0584065c036414f6e4ae01e72314f2f9cbed7329/src/treelearner/feature_histogram.hpp#L505).
 - see [lines 565 onwards](https://github.com/Microsoft/LightGBM/blob/0584065c036414f6e4ae01e72314f2f9cbed7329/src/treelearner/feature_histogram.hpp#L565) for the implementation described above
     - `sum_left_gradient`, `sum_left_hessian` refer to $$\sum_{i\in B} \partial_1L\left(\hat{f}^t(x_i) , y_i\right)$$ and $$\sum_{i\in B}\partial_1^2L\left(\hat{f}^t(x_i) , y_i\right)$$
-    - lines 585 onwards iterates through all the relevant cutpoints
+    - lines 585 onwards iterates through all the relevant cutoff points
     - lines 589-593 performs the incremental updating of the `sum_left_gradient` and `sum_left_hessian`
     - lines 595, 599, 603 are various regularizations that terminate the algorithm when there's not enough data
     - lines 601 and 605 compute the `sum_right_gradient` and `sum_right_hessian` by just subtracting the corresponding left hessian/gradient from the total sum
-- [`CalculateSplittedLeafOutput()`](https://github.com/Microsoft/LightGBM/blob/0584065c036414f6e4ae01e72314f2f9cbed7329/src/treelearner/feature_histogram.hpp#L447) computes the best constant value for the set, denoted by $$\hat{y}$$ above, though there are differences due to some regularization that we didn't discuss above
+- [`CalculateSplittedLeafOutput()`](https://github.com/Microsoft/LightGBM/blob/0584065c036414f6e4ae01e72314f2f9cbed7329/src/treelearner/feature_histogram.hpp#L447) computes the best constant prediction for a given set of observations, denoted by $$\hat{y}$$ above, though there are differences due to some regularization that we didn't discuss above
     - L1 regularization, which amounts to zeroing out too small $$\hat{y}$$
     - L2 regularization, which amounts to increasing the hessian, which shrinks $$\hat{y}$$ towards 0
     - `max_delta_step`, which prevents the model from updating too quickly by limiting the max size of $$\hat{y}$$
@@ -168,7 +168,7 @@ This is implemented in LightGBM in the [`FindBestThresholdSequence()` function](
         - note that this function ignores the $$\sum_{i}L\left(\hat{f}^t(x_i) , y_i\right)$$ in \eqref{gbtloss}, because when computing the gain $$l_A-(l_B+l_C)$$, this ends up being canceled out
 
 ### II. Quantile regression
-Gradient boosting relies on approximating the true objective $$L$$ with a second-order expansion, and then picking the splits and predictions in order to optimize this approximate loss.  Clearly, this will cause issues if the second order approximation of $$L$$ is bad.  This is exactly the issue with quantile regression.
+Gradient boosting relies on approximating the true objective $$L$$ with a second-order expansion, and then picking the splits and predictions in order to optimize this approximate loss.  Thus it seems plausible that if the seconr-order approximation to $$L$$ is bad, the quality of our predictions may suffer.  This is exactly the issue with quantile regression.
 
 In order for $$L$$ to be well approximated by its second-order example, the local curvature of $$L$$ has to contains some information about where $$L$$ is optimized.  Unfortunately, this is not the case for the quantile loss in \eqref{quantileloss}.  This loss function has uniformly zero second derivatives, which provide zero information about where it is optimized.  Compare this with e.g. a quadratic loss function, where if you know the local curvature and gradient you can reconstruct the coefficients on the quadratic and thus back out exactly where the function is minimized.
 
@@ -176,7 +176,8 @@ However, note that the quantile loss \eqref{quantileloss} does have well-defined
 - $$\partial_1L(\tilde{y}, y)$$ are either $$-\alpha$$ or $$1-\alpha$$ depending on $$\tilde{y}<y$$ or $$>$$
 - $$\partial_1L(\tilde{y}, y)$$ is 0
 - at $$\tilde{y}=y$$, both derivatives are undefined (but this is measure 0 so it doesn't matter)
-As a result, you can just... literally plug these into \eqref{gbtyhat} and \eqref{gbtloss} to get the relevant predictions $$\hat{y}$$ and losses $$l$$ (though you would have to add some L2 regularization so that the denominator wasn't uniformly 0).
+
+As a result, you can just... literally plug these into \eqref{gbtyhat} and \eqref{gbtloss} to get the relevant predictions $$\hat{y}$$ and losses $$l$$ (though you would have to add some L2 regularization so that the denominator isn't uniformly 0).
 
 Until early this year, LightGBM's quantile regression was essentially this (or some slight variant).  Then some people [started noticing that this was resulting in poor performance](https://github.com/Microsoft/LightGBM/issues/1182), and the devs  [pushed some changes](https://github.com/Microsoft/LightGBM/pull/1199) that appear to have improved performance significantly.  **The fix was to grow the trees as above, but then when the tree is grown, actually go back and re-compute the values in each leaf so that they minimize the true loss function \eqref{quantileloss} instead of the second order approximation.**
 
@@ -195,13 +196,13 @@ Computing the $$\hat{y}_B$$ that minimizes the true loss \eqref{quantileloss} ov
 $$
 \begin{align}
 &\sum_{i\in B}L\left(\sum_{t^\prime<t}\hat{f}_{t^\prime}(x_i) + \tilde{y}, y_i\right)\newline
-&= [\mathbb{1}_{\left(\sum_{t^\prime<t}\hat{f}_{t^\prime}(x_i) + \tilde{y}<y\right)}\alpha + \mathbb{1}_{\left(\sum_{t^\prime<t}\hat{f}_{t^\prime}(x_i) + \tilde{y}\geq y\right)}(1-\alpha) ] 
+&= \left[\mathbb{1}_{\left(\sum_{t^\prime<t}\hat{f}_{t^\prime}(x_i) + \tilde{y}<y\right)}\alpha + \mathbb{1}_{\left(\sum_{t^\prime<t}\hat{f}_{t^\prime}(x_i) + \tilde{y}\geq y\right)}(1-\alpha) \right] 
 \left\lvert\sum_{t^\prime<t}\hat{f}_{t^\prime}(x_i) + \tilde{y}-y\right\rvert \newline
 &= \sum_{i\in B}L\left(\tilde{y}, y_i-\sum_{t^\prime<t}\hat{f}_{t^\prime}(x_i)\right)
 \end{align}
 $$
 
-so that $$\arg\min_{\tilde{y}}\sum_{i\in B}L\left(\sum_{t^\prime<t}\hat{f}_{t^\prime}(x_i) + \tilde{y}, y_i\right)$$ is just the empirical $$\alpha$$-quantile of $$y_i-\sum_{t^\prime<t}\hat{f}_{t^\prime}(x_i)$$ computed over the set of observations $$B$$.  Thus, **re-computing the optimal $$\hat{y}_B$$ in a given leaf amounts to just finding an empirical quantile.**
+so that $$\arg\min_{\tilde{y}}\sum_{i\in B}L\left(\sum_{t^\prime<t}\hat{f}_{t^\prime}(x_i) + \tilde{y}, y_i\right)$$ is just the empirical $$\alpha$$-quantile of $$y_i-\sum_{t^\prime<t}\hat{f}_{t^\prime}(x_i)$$ computed over the set of observations $$i\in B$$.  Thus, **re-computing the optimal $$\hat{y}_B$$ in a given leaf amounts to just finding an empirical quantile.**
 
 
 This is a quite reasonable approach from a time-complexity perspective:
@@ -212,26 +213,26 @@ This is a quite reasonable approach from a time-complexity perspective:
 - which is small relative to the $$O(THND)$$ complexity of all the splitting we need to do anyways 
 
 Even absent time considerations, this is not that unreasonable
-- during the tree-growing process we're using an approximate loss function that might not be a great approximation for the true one
-- this approximate loss can just be seen as a noised up version of the true loss
-- as a result, the optimal split might not correspond to the optimal split if we used to true loss
-- however, the optimal split is greedy anyways, so it's not going to be globally optimal anyways
+- during the tree-growing process we're using a second-order approximate loss function instead of the true one
+- this approximate loss can be seen as a noised up version of the true loss
+- so, the best split under this approximate loss might not correspond to the best split under the true loss
+- however, the splitting procedure is greedy, so even with the true loss it's not going to be globally optimal anyways
 - furthermore, we generally force the tree to select non-greedily-optimal splits by randomly restricting the set of observations or dimensions to split on, as a form of regularization
-- so, using the approximate loss is effectively just another way of regularization during the tree growing process
-- we only optimize the true loss at the leaves, since those are the only places where the actual values of the loss matters
+- thus, using the approximate loss is effectively just another form of regularization during the tree growing process
+- we only optimize the true loss at the leaves, since leaves are the only places where the actual predicted values matter
 
 
 Implementation in LightGBM:
 - the [`TrainOneIter()` function](https://github.com/Microsoft/LightGBM/blob/34a643f67527b742ce9084de7616301a82ff890e/src/boosting/gbdt.cpp#L386) implements the logic for training one tree (so, corresponding to a single $$t$$ in our exposition above)
     - it theoretically supports training multiple trees per 'iteration' but that parameter (`num_tree_per_iteration_`) seems to be... hardcoded to 1?
-    - this first calls `tree_learner_->Train()` (line 437)
-        - `Train()` function is [implemented e.g. here](https://github.com/Microsoft/LightGBM/blob/master/src/treelearner/serial_tree_learner.cpp#L156), and does the tree-building using the first and second order derivatives
-    - and then calls `tree_learner_->RenewTreeOutput()` (line 446)
+    - this function first calls `tree_learner_->Train()` (line 437)
+        - `Train()` function is [implemented e.g. here](https://github.com/Microsoft/LightGBM/blob/master/src/treelearner/serial_tree_learner.cpp#L156), and does the tree-building using the first and second order derivatives in the typical graident tree boosting manner
+    - it then calls `tree_learner_->RenewTreeOutput()` (line 446)
         - this function does the re-computing of the objective at the leaves
-- [This is an implementation of `tree_learner_->RenewTreeOutput()` from above](https://github.com/Microsoft/LightGBM/blob/dc6995742a5284a1e942978e2542fc49adda9ea1/src/treelearner/serial_tree_learner.cpp#L776)
+- [This is an implementation of `tree_learner_->RenewTreeOutput()`](https://github.com/Microsoft/LightGBM/blob/dc6995742a5284a1e942978e2542fc49adda9ea1/src/treelearner/serial_tree_learner.cpp#L776)
     - this function just iterates through all the leaves, and calls `obj->RenewTreeOutput()` on each one, where `obj` is whatever objective function we're using, which in our cases is `RegressionQuantileloss`
 - [This is the implementation of `obj->RenewTreeOutput()` for quantile regression](https://github.com/Microsoft/LightGBM/blob/f660b5fe4148fc3f5985b10c1fea969b695cb8de/src/objective/regression_objective.hpp#L512)
-    - this just calls the `PercentileFun()` function on each leaf
+    - this just calls the `PercentileFun()` function on each leaf in order to get the $$\alpha$$-quantile of the data in that leaf
 - [This is the implementation of `PercentileFun()`](https://github.com/Microsoft/LightGBM/blob/f660b5fe4148fc3f5985b10c1fea969b695cb8de/src/objective/regression_objective.hpp#L11)
     - it computes the the indices of the two datapoints that would straddle the $$\alpha$$-quantile, and then does a linear interpolation to find the corresponding quantile
     - [this relies on the `ArgMaxAtK()` function](https://github.com/Microsoft/LightGBM/blob/0584065c036414f6e4ae01e72314f2f9cbed7329/include/LightGBM/utils/array_args.h#L130), which appears to be a custom implementation of quickselect for finding the Kth largest item in some set of items
