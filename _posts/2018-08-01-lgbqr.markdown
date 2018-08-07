@@ -237,7 +237,7 @@ Implementation in LightGBM:
     - it computes the the indices of the two datapoints that would straddle the $$\alpha$$-quantile, and then does a linear interpolation to find the corresponding quantile
     - [this relies on the `ArgMaxAtK()` function](https://github.com/Microsoft/LightGBM/blob/0584065c036414f6e4ae01e72314f2f9cbed7329/include/LightGBM/utils/array_args.h#L130), which appears to be a custom implementation of quickselect for finding the Kth largest item in some set of items
 
-This implementation is consistent we verbally described above: each tree is built normally, and after that finishes, the algorithm goes through each leaf and re-computes the optimal prediction in each leaf, which is just the $$\alpha$$-quantile.
+This implementation is consistent with what we verbally described above: each tree is built normally, and after that finishes, the algorithm goes through each leaf and re-computes the optimal prediction in each leaf, which is just the leaf-wise empirical $$\alpha$$-quantile.
 
 
 
