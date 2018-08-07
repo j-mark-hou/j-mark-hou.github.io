@@ -105,7 +105,7 @@ Note that in order to determine the optimal splits, the algorithm tests every po
 
 
 #### Gradient tree boosting
-The fact that the splitting procedure 2.2 above appears to require re-computing the loss functions for every dimension of $$x$$ and for every potential cutoff point seems like it would somewhat limit the applicability of tree boosting, espcially for large data sets.  **Probably the main innovation of gradient boosting as implemented initially in XGBoost and later in LightGBM/others (and certainly responsible for the popularity of these packages) is how to resolve this issue by using a second-order approximation of the loss function $$L$$.**
+The fact that the splitting procedure 2.2 above appears to require re-computing the loss functions for every dimension of $$x$$ and for every potential cutoff point seems like it would somewhat limit the applicability of tree boosting, espcially for large data sets.  **Probably the main innovation of gradient boosting as implemented in e.g. XGBoost/LightGBM/others is how to resolve this issue by using a second-order approximation of the loss function $$L$$.**  Certainly, the fact that these implementations run quite quickly is a major reason for their popularity.
 
 Letting $$\displaystyle\hat{f}^t := \sum_{t^\prime<t}\hat{f}_{t^\prime}(x_i)$$, for some set of observations $$B$$ we can write
 
@@ -211,6 +211,7 @@ This is a quite reasonable approach from a time-complexity perspective:
     - so, total complexity of finding the optimal values for all the leaves is just $$O(N)$$, since the leaves partition our data
 - so, in total we need to perform $$TN$$ operations over the entire tree boosting proces
 - which is small relative to the $$O(THND)$$ complexity of all the splitting we need to do anyways 
+- compare this to using the true loss function for splitting, which would slow us back down to the non-gradient tree boosting case
 
 Even absent time considerations, this is not that unreasonable
 - during the tree-growing process we're using a second-order approximate loss function instead of the true one
@@ -226,7 +227,8 @@ Implementation in LightGBM:
 - the [`TrainOneIter()` function](https://github.com/Microsoft/LightGBM/blob/34a643f67527b742ce9084de7616301a82ff890e/src/boosting/gbdt.cpp#L386) implements the logic for training one tree (so, corresponding to a single $$t$$ in our exposition above)
     - it theoretically supports training multiple trees per 'iteration' but that parameter (`num_tree_per_iteration_`) seems to be... hardcoded to 1?
     - this function first calls `tree_learner_->Train()` (line 437)
-        - `Train()` function is [implemented e.g. here](https://github.com/Microsoft/LightGBM/blob/master/src/treelearner/serial_tree_learner.cpp#L156), and does the tree-building using the first and second order derivatives in the typical graident tree boosting manner
+        - `Train()` function is [implemented e.g. here](https://github.com/Microsoft/LightGBM/blob/master/src/treelearner/serial_tree_learner.cpp#L156), and does the tree-building using the first and second derivatives in the typical graident tree boosting manner
+            - Note: this isn't exactly right for quantile regression, as in that case [LightGBM actually sets the second derivative equal to 1](https://github.com/Microsoft/LightGBM/blob/f660b5fe4148fc3f5985b10c1fea969b695cb8de/src/objective/regression_objective.hpp#L476) rather than 0.
     - it then calls `tree_learner_->RenewTreeOutput()` (line 446)
         - this function does the re-computing of the objective at the leaves
 - [This is an implementation of `tree_learner_->RenewTreeOutput()`](https://github.com/Microsoft/LightGBM/blob/dc6995742a5284a1e942978e2542fc49adda9ea1/src/treelearner/serial_tree_learner.cpp#L776)
