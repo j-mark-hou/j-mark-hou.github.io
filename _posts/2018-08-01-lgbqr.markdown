@@ -223,7 +223,7 @@ Even absent time considerations, this is not that unreasonable
 - we only optimize the true loss at the leaves, since leaves are the only places where the actual predicted values matter
 
 
-Implementation in LightGBM:
+#### Implementation in LightGBM:
 - the [`TrainOneIter()` function](https://github.com/Microsoft/LightGBM/blob/34a643f67527b742ce9084de7616301a82ff890e/src/boosting/gbdt.cpp#L386) implements the logic for training one tree (so, corresponding to a single $$t$$ in our exposition above)
     - it theoretically supports training multiple trees per 'iteration' but that parameter (`num_tree_per_iteration_`) seems to be... hardcoded to 1?
     - this function first calls `tree_learner_->Train()` (line 437)
@@ -241,6 +241,9 @@ Implementation in LightGBM:
 
 This implementation is consistent with what we verbally described above: each tree is built normally, and after that finishes, the algorithm goes through each leaf and re-computes the optimal prediction in each leaf, which is just the leaf-wise empirical $$\alpha$$-quantile.
 
+#### Does it actually work?
+- [People appear to be seeing better performance](https://github.com/Microsoft/LightGBM/pull/1199)
+- Though there aren't any theoretical guarantees on consistency 
 
 
 
