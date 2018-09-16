@@ -7,15 +7,16 @@ categories: statistics
 
 
 Here's a pretty fun [paper on deep instrumental variables](http://proceedings.mlr.press/v70/hartford17a/hartford17a.pdf).  Some reasons why it's fun:
-1. deep learning is pretty hype
-2. instrumental variables (and causal inference more generally) is becoming pretty hype
+1. deep learning is pretty popular
+2. instrumental variables (and causal inference more generally) is becoming pretty popular
 3. paper is pretty easy to understand
-3. deep learning is actually pretty ancillary to the central thrust of the paper
+3. deep learning is actually totally ancillary to the central thrust of the paper
 
-I'll discuss what instrumental variables is, and how this deep IV paper approaches the problem.
+I'll discuss what instrumental variables is, and how this deep IV paper approaches the problem.  Then, we'll take the central idea, re-implement it without any neural networks, and do some basic validation.
 
 
-### Instrumental variables (IV)
+### I. Background / theory
+#### I.1. Instrumental variables (IV)
 People are often interested in how things affect other things: 
 1. If you sell stuff, you might care about how prices affect number of sales.  
 1. If you run a social media company, you might be interested in how the number of ads you show affect how much people use your platform.
@@ -56,7 +57,7 @@ With your instrument, you can basically do something like this:
 We'll be more formal about this in the next section.
 
 
-### Nonparametric IV, more formally
+#### I.2. Nonparametric IV, more formally
 (Note: you can see [Newey Powell 2003](https://eml.berkeley.edu//~powell/npiv.pdf) for more details.  This is called 'nonparametric' because we're treating the function $$g$$ as a general function, as opposed to being defined by a fixed set of parameters.)  
 
 Alright, let's formally define our setup:
@@ -70,11 +71,13 @@ y=g(x)+\epsilon,\quad \mathbb{E}[e\mid z]=0, \quad \text{possibly } \mathbb{E}[e
 - $$y$$ is your outcome variable, $$x$$ are covariates, $$z$$ are instruments
 
 So, the formal version of the argument given at the end of the previous section is basically integrating the expression in \eqref{ivdef}:
+$$
 \begin{equation}
 \mathbb{E}[y\mid z] = \int dF(x\mid z) g(x)
 \tag{2}
 \label{fredholm}
 \end{equation}
+$$
 Some points:
 - $$\epsilon$$ drops out because $$\mathbb{E}[e\mid z]=0$$.
 - $$F(x\mid z)$$ is observable, since it's just the distribution of $$x$$ given $$z$$.
@@ -96,7 +99,7 @@ Alright, let's do some examples of equation \eqref{fredholm} to fix intuition:
 	- You can estimate $$\beta$$ since you observe $$Az$$ and $$\mathbb{E}[y\mid z]$$ and $$Az$$ spans the same space as $$x$$ as you vary $$z$$.
 	- This is just your typical linear instrumental variables setup, where in your first stage you estimate how your $$z$$ affects your $$x$$ (which is the $$A$$), and then in your second stage where you plug in your first-stage estimate of $$x$$ given $$z$$ (which is $$Az$$) to estimate $$\beta$$.
 
-### Identification? Estimation?
+#### I.3. Identification? Estimation?
 Given that we want to back out $$g$$ using \eqref{fredholm}, it would be nice if there were some identification conditions telling us whether/when there's only a single function $$g$$ that satisfies \eqref{fredholm} out of some class of functions $$\mathcal{G}$$.  Identification holds IFF a 'completeness' condition holds.  Roughly this completeness condition amounts to a requirement that any random variable $$\tilde{g}(x)$$ for $$\tilde{g}\in \mathcal{G}$$ must somehow not exploit any information that's present in $$x$$ but not in $$z$$:
 - Note that any function $$\tilde{g}$$ that satisfies $$\eqref{fredholm}$$ must have $$\mathbb{E}[y\mid z] = \int dF(x\mid z) \tilde{g}(x)$$
 - So $$0 = \mathbb{E}[\tilde{g}(x)-g(x) \mid z]$$.
@@ -123,7 +126,7 @@ In practice, identification is good, but if we want to estimate $$g$$ we need so
 Overall, general theory for identification/estimation of nonparametric IV is somewhat incomplete, so that we don't have the kind of totally solid guarantees that maybe we'd like.
 
 
-### Deep IV
+#### I.4. Deep IV
 Thankfully, we're now at a point in history where it's not too insane to just throw function approximators at various problems and have it work pretty well even if it's not entirely clear why.  So, even with a lack of theoretical guarantees about identification / estimation, it's not a bad idea to just go ahead and just try to do something reasonable, and hope that things work out.
 
 The Deep IV paper proposes to do a very reasonable thing:
@@ -138,19 +141,35 @@ This strategy is also quite nice, because it breaks the problem of estimating $$
 - If the distribution of $$x\mid z$$ is just 1-dimensional, then you can just estimate quantiles of $$F(x\mid z)$$.
 - Discretize your $$x$$-space and estimate a categorical distribution on the grid.  
 2. For the second stage, this is also a supervised learning problem: You have $$N$$ observations $$y_i, x_i, z_i$$, and you're trying to find some $$\hat{g}$$ such that \eqref{fredholm} holds approximately in your data.  That is, you want to pickg $$g$$ that makes $$\mathbb{E}[y\mid z]$$ and $$\int d\hat{F}(x\mid z) \hat{g}(x)$$ very close to each other in your data.  So, you can think about minimizing the squared loss:
+
+$$
 \begin{align}
-\hat{g}&= \arg\min_{\tilde{g}}\sum_i\left(y_i - \int d\hat{F}(x\mid z_i) \tilde{g}(x))\right)^2 \newline
-& \approx \arg\min_{\tilde{g}}\sum_i\left(y_i - \sum_{x_{ij}\sim \hat{F}(x_{ij}\mid z_i)} \tilde{g}(x))\right)^2
+\hat{g}&= \arg\min_{\tilde{g}}\sum_i\left(y_i - \int d\hat{F}(x\mid z_i) \tilde{g}(x)\right)^2 \newline
+& \approx \arg\min_{\tilde{g}}\sum_i\left(y_i - \sum_{x_{ij}\sim \hat{F}(x_{ij}\mid z_i)} \tilde{g}(x)\right)^2
 \label{obj}
 \tag{3}
 \end{align}
+$$
+
 where in the second step we've replaced the internal integral with a sum, because the integral $$\int d\hat{F}(x\mid z_i) \tilde{g}(x))$$ will need to be implemented by sampling a bunch of $$x_{ij}\sim \hat{F}(x\mid z_i)$$ and then taking a sum.
 - You can parameterize your $$\tilde{g}$$ as a function of some stuff, in which case you can just go ahead and do gradient descent or something like that.  The Deep IV paper uses a neural network here.
 - There's some amount of complication here, in that there's a sum on the inside of your square that you need to evaluate every time you want to evaluate the objective function, and that's kind of hard to deal with.  So, one thing you can do is to just move the sum outside of the square.  This amounts to using a different objective function (that upper bounds the previous one via Jensen):
+
+$$
 \begin{align}
-\hat{g}&= \arg\min_{\tilde{g}}\sum_i\int d\hat{F}(x\mid z_i) \left(y_i - \tilde{g}(x))\right)^2 \newline
- & \approx \arg\min_{\tilde{g}}\sum_i \sum_{x_{ij}\sim \hat{F}(x_{ij}\mid z_i)} \left(y_i - \tilde{g}(x_{ij}))\right)^2
+\hat{g}&= \arg\min_{\tilde{g}}\sum_i\int d\hat{F}(x\mid z_i) \left(y_i - \tilde{g}(x)\right)^2 \newline
+ & \approx \arg\min_{\tilde{g}}\sum_i \sum_{x_{ij}\sim \hat{F}(x_{ij}\mid z_i)} \left(y_i - \tilde{g}(x_{ij})\right)^2
 \tag{4}
 \label{ezobj}
 \end{align}
-With this, you can just randomly draw a bunch of $$\hat{x}_{ij}$$s for each $$z_i$$ according to $$\hat{F}(x\mid z_i)$$, treat this new set of $$(y_i, \hat{x}_{ij}, z_i)$$ as your data and then just do straight-up supervised learning on this instead.  However, just swapping out one objective function for another is a bit questionable, and certainly if we had consistency before we would lose it by doing this.  But at the end of the day, everything that we're doing here is a bit suspicious from a theoretical perspective, and this swapping out kind of feels not that unreasonable.  So, worth trying out, especially because it's easy.
+$$
+
+With this, you can just randomly draw a bunch of $$\hat{x}_{ij}$$s for each $$z_i$$ according to $$\hat{F}(x\mid z_i)$$, treat this new set of $$(y_i, \hat{x}_{ij}, z_i)$$ as your data and then just do straight-up supervised learning on this instead.  However, just swapping out one objective function for another is a bit questionable, and certainly if we had consistency before we would lose it by doing this (as we'll see below, this fails in quite trivial cases).  But at the end of the day, everything that we're doing here is a bit suspicious from a theoretical perspective, and this swapping out kind of feels not that unreasonable.  So, worth trying out, especially because it's easy.
+
+
+### II. Re-implementation
+#### II.1. Basic idea
+TODO: discuss difference (quantile) and implementation details
+
+#### II.2. Synthetic experiment setting
+We'll build a synthetic setting that is (1) realistic-ish, and (2) fairly simple to function as a minimal test for our implementatin of nonparametric/deep iv.
