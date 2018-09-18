@@ -102,7 +102,7 @@ In the interest of regurgitating these ideas for my own sake / make this learnin
 			- probably search on google for some more intuition, the exposition here is abit too general
 			- or just ignore this for now and come back when you're reading the alphago example in chapter 16, as that is much more concrete
 
-### Approximate value methods (chapters 9, 10)
+### Approximate value methods (chapters 9, 10, 11)
 - least squares approximation objective, relation to supervised learning
 - monte carlo gradient descent = literally supervised learning
 - semi-gradient updates in TD = using bootstrapped value function in the $$y$$ instead of the full
@@ -126,7 +126,7 @@ In the interest of regurgitating these ideas for my own sake / make this learnin
 		- this seems like it would make things unstable
 		- policy methods, you're directly modeling the probability of each action via some differentiable function, so by def continuous
 		- recent stuff like [trust policy policy optimization](https://arxiv.org/abs/1502.05477) that guarantee steps are not too big
-- policy gradient:
+- policy gradient (chapter 13):
 	- policy gradient theorem: 
 		- final form of the policy gradient (equation 13.5 on p.326) is for the no-discounting case, so if you're confused about why there are stationary distributions in that expression, that's why
 		- original paper has the proof in general [Policy Gradient Methods for Reinforcement Learning with Function Approximation](https://papers.nips.cc/paper/1713-policy-gradient-methods-for-reinforcement-learning-with-function-approximation.pdf)
