@@ -105,13 +105,13 @@ In the interest of regurgitating these ideas for my own sake / make this learnin
 ### Approximate value methods (chapters 9, 10, 11)
 - least squares approximation objective, relation to supervised learning
 - monte carlo gradient descent = literally supervised learning
-- semi-gradient updates in TD = using bootstrapped value function in the $$y$$ instead of the full
-	- again, lowers variance but potentially at the cost of variance
-	- kind of... super questionable?
+- semi-gradient updates in TD = using bootstrapped value function in the $$y$$ instead of the full reward path
+	- again, lowers variance but potentially at the cost of bias
+	- seems kind of... super questionable?
 	- like you can imagine feedback loops where your value function starts out being kinda wrong, which motivates the updates to make the Q function even more wrong, etc.
 - linear models have nice theory, but who cares
 - neural network approximators people use in state of the art stuff
-	- for the most part you can probably just black box all of this and treat NNs as just some complicated nonlinear mapping
+	- for the most part you can probably just black box all of this and treat NNs as just some complicated nonlinear approximator
 - some complications for continuing MDPs that never end, but none of the recent problems that I've heard about fall in this category, so I just kind of ignored all of it?
 - **deadly triad**, and why reinforcement learning with function approximators is hard
 	- consider in context of the Deep-Q learning atari stuff
@@ -125,7 +125,7 @@ In the interest of regurgitating these ideas for my own sake / make this learnin
 		- the policy-from-Q argmax is discontinuous, so even small changes in your parameterization of Q-value can lead to big changes in policy
 		- this seems like it would make things unstable
 		- policy methods, you're directly modeling the probability of each action via some differentiable function, so by def continuous
-		- recent stuff like [trust policy policy optimization](https://arxiv.org/abs/1502.05477) that guarantee steps are not too big
+		- recent stuff like [trust region policy optimization](https://arxiv.org/abs/1502.05477) that guarantee steps are not too big
 - policy gradient (chapter 13):
 	- policy gradient theorem: 
 		- final form of the policy gradient (equation 13.5 on p.326) is for the no-discounting case, so if you're confused about why there are stationary distributions in that expression, that's why
@@ -137,6 +137,10 @@ In the interest of regurgitating these ideas for my own sake / make this learnin
 	- [Evolution Strategies as a Scalable Alternative to Reinforcement Learning](https://arxiv.org/abs/1703.03864)
 	- apparently, you can do this completely trivial thing and get state of the art performance on a bunch of stuff
 	- ?????
+
+### Challenges (chapter 17)
+- also, [this blog post on why RL is hard](https://www.alexirpan.com/2018/02/14/rl-hard.html)
+
 
 ### Applications (chapter 16):
 - Atari deep-Q-learning
