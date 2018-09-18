@@ -32,7 +32,7 @@ In the interest of regurgitating these ideas for my own sake / make this learnin
 - the definition of an MDP is pretty important
 - comparison vs bandits: MDPs are explicitly sequential, with actions and states leading to other states, whereas contextual bandits do not have this sort of structure (chapter 2)
 	- the example in section 16.7 is a good illustration
-- distinction between a distribution model = can easily get the transition probabilities and rewards, and a sample model = you can easily draw samples but not easily 
+- distinction between a distribution model = can easily access the literal probabilities defining the model, and a sample model = can easily draw samples from the model but not easily get the probabilities themselves
 	- sample models are much easier to come by e.g. video game simulators
 	- see the intro/conclusion of section 8
 - 'episode' is a bit of a vague name, so remember that
