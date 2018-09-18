@@ -57,7 +57,7 @@ In the interest of regurgitating these ideas for my own sake / make this learnin
 - after learning about Q-learning, come back and appreciate that Q-learning is kind of like an online sampling version of value iteration
 
 ### Value vs policy methods for reinforcement learning
-- value methods = estimate Q, then derive policy by $$\arg\max_s Q(s,a)$$ or $$\epsilon$$-greedy
+- value methods = estimate Q, then derive policy by $$\arg\max_a Q(s,a)$$ or $$\epsilon$$-greedy
 - policy methods = directly optimize the policy, possibly without any use of value functions
 - everything in this book is about value-based stuff except for chapter 13 (policy gradients)
 	- naturally, current state of the art is policy gradients
