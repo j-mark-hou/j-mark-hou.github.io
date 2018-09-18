@@ -117,7 +117,7 @@ In the interest of regurgitating these ideas for my own sake / make this learnin
 	- consider in context of the Deep-Q learning atari stuff
 
 ### Policy methods
-- General points:
+- general points:
 	- policy methods have a much easier time dealing with continuous / large action spaces:
 		- in value methods, you derive policy from Q-value by taking an $$\arg\max_a Q(s,a)$$
 		- this is generally hard if you have many actions
@@ -126,14 +126,14 @@ In the interest of regurgitating these ideas for my own sake / make this learnin
 		- this seems like it would make things unstable
 		- policy methods, you're directly modeling the probability of each action via some differentiable function, so by def continuous
 		- recent stuff like [trust policy policy optimization](https://arxiv.org/abs/1502.05477) that guarantee steps are not too big
-- Policy gradient:
+- policy gradient:
 	- policy gradient theorem: 
 		- final form of the policy gradient (equation 13.5 on p.326) is for the no-discounting case, so if you're confused about why there are stationary distributions in that expression, that's why
 		- original paper has the proof in general [Policy Gradient Methods for Reinforcement Learning with Function Approximation](https://papers.nips.cc/paper/1713-policy-gradient-methods-for-reinforcement-learning-with-function-approximation.pdf)
 		- but whatever, who cares, the point is that this derivative is easy
 	- question of using Monte-carlo sampling (REINFORCE) or some bootstrapping (actor-critic)
 		- note that for actor-critic, you need to keep an updated $$V$$ function via some on-policy policy evaluation algorithm (e.g. TD learning), since you're sampling data according to the current policy
-- Evolutionary strategies: 
+- evolutionary strategies: 
 	- [Evolution Strategies as a Scalable Alternative to Reinforcement Learning](https://arxiv.org/abs/1703.03864)
 	- apparently, you can do this completely trivial thing and get state of the art performance on a bunch of stuff
 	- ?????
