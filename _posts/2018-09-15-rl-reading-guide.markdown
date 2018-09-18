@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Reinforcement learning in a few days"
-date:   2018-09-15 00:00:00 -0400
+date:   2018-09-17 00:00:00 -0400
 categories: machine learning
 ---
 
@@ -138,7 +138,7 @@ In the interest of regurgitating these ideas for my own sake / make this learnin
 	- apparently, you can do this completely trivial thing and get state of the art performance on a bunch of stuff
 	- ?????
 
-### Applications (Chapter 16):
+### Applications (chapter 16):
 - Atari deep-Q-learning
 	- probably also just read the paper [Human-level control through deep reinforcement learning](http://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf)
 	- note that deadly triad applies here
