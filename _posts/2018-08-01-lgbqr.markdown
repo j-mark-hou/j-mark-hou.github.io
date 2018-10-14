@@ -173,8 +173,8 @@ Gradient boosting relies on approximating the true objective $$L$$ with a second
 In order for $$L$$ to be well approximated by its second-order example, the local curvature of $$L$$ has to contains some information about where $$L$$ is optimized.  Unfortunately, this is not the case for the quantile loss in \eqref{quantileloss}.  This loss function has uniformly zero second derivatives, which provide zero information about where it is optimized.  Compare this with e.g. a quadratic loss function, where if you know the local curvature and gradient you can reconstruct the coefficients on the quadratic and thus back out exactly where the function is minimized.
 
 However, note that the quantile loss \eqref{quantileloss} does have well-defined derivatives almost everywhere
-- $$\partial_1L(\tilde{y}, y)$$ are either $$-\alpha$$ or $$1-\alpha$$ depending on $$\tilde{y}<y$$ or $$>$$
-- $$\partial_1L(\tilde{y}, y)$$ is 0
+- $$\partial_1L(\tilde{y}, y)$$ is either $$-\alpha$$ or $$1-\alpha$$ depending on $$\tilde{y}<y$$ or $$>$$
+- $$\partial_1^2L(\tilde{y}, y)$$ is 0
 - at $$\tilde{y}=y$$, both derivatives are undefined (but this is measure 0 so it doesn't matter)
 
 As a result, you can just... literally plug these into \eqref{gbtyhat} and \eqref{gbtloss} to get the relevant predictions $$\hat{y}$$ and losses $$l$$ (though you would have to add some L2 regularization so that the denominator isn't uniformly 0).
@@ -227,8 +227,8 @@ Even absent time considerations, this is not that unreasonable
 - the [`TrainOneIter()` function](https://github.com/Microsoft/LightGBM/blob/34a643f67527b742ce9084de7616301a82ff890e/src/boosting/gbdt.cpp#L386) implements the logic for training one tree (so, corresponding to a single $$t$$ in our exposition above)
     - it theoretically supports training multiple trees per 'iteration' but that parameter (`num_tree_per_iteration_`) seems to be... hardcoded to 1?
     - this function first calls `tree_learner_->Train()` (line 437)
-        - `Train()` function is [implemented e.g. here](https://github.com/Microsoft/LightGBM/blob/master/src/treelearner/serial_tree_learner.cpp#L156), and does the tree-building using the first and second derivatives in the typical graident tree boosting manner
-            - Note: this isn't exactly right for quantile regression, as in that case [LightGBM actually sets the second derivative equal to 1](https://github.com/Microsoft/LightGBM/blob/f660b5fe4148fc3f5985b10c1fea969b695cb8de/src/objective/regression_objective.hpp#L476) rather than 0.
+        - `Train()` function is [implemented e.g. here](https://github.com/Microsoft/LightGBM/blob/master/src/treelearner/serial_tree_learner.cpp#L156), and does the tree-building using the first and second derivatives in the typical gradient tree boosting manner
+            - Note:  for quantile regression, [LightGBM actually sets the second derivative equal to 1](https://github.com/Microsoft/LightGBM/blob/f660b5fe4148fc3f5985b10c1fea969b695cb8de/src/objective/regression_objective.hpp#L476) rather than 0
     - it then calls `tree_learner_->RenewTreeOutput()` (line 446)
         - this function does the re-computing of the objective at the leaves
 - [This is an implementation of `tree_learner_->RenewTreeOutput()`](https://github.com/Microsoft/LightGBM/blob/dc6995742a5284a1e942978e2542fc49adda9ea1/src/treelearner/serial_tree_learner.cpp#L776)
