@@ -1,19 +1,16 @@
 ---
 layout: post
 title:  "Nonparametric / 'deep' instrumental variables"
-date:   2018-08-15 22:00:00 -0400
+date:   2018-10-15 20:00:00 -0400
 categories: statistics
 ---
 
 
-Here's a pretty fun [paper on deep instrumental variables](http://proceedings.mlr.press/v70/hartford17a/hartford17a.pdf).  Some reasons why it's fun:
-1. deep learning is pretty popular
-2. instrumental variables (and causal inference more generally) is becoming pretty popular
-3. paper is pretty easy to understand
-3. deep learning is actually totally ancillary to the central thrust of the paper
-
-I'll discuss what instrumental variables is, and how this deep IV paper approaches the problem.  Then, we'll take the central idea, re-implement it without any neural networks, and do some basic validation.
-
+Here's a pretty fun [paper on deep instrumental variables](http://proceedings.mlr.press/v70/hartford17a/hartford17a.pdf).  Deep learning is actually totally ancillary to the core idea of the paper, which is that you can approach nonparametric instrumental variables as two supervised learning problems.  Here, I'll:
+1. discuss what nonparametric instrumental variables is, and how the DeepIV paper approaches the problem
+2. re-implement the core idea of breaking nonparametric IV into two supervised learning problems, but without any deep learning
+3. build a simple simulation environment and apply this re-implementation to some simulated data
+4. discuss/illustrate some potential challenges to this core idea
 
 ### I. Background / theory
 #### I.1. Instrumental variables (IV)
