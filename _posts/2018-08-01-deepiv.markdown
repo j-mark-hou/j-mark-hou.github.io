@@ -6,11 +6,15 @@ categories: statistics
 ---
 
 
-Here's a pretty fun [paper on deep instrumental variables](http://proceedings.mlr.press/v70/hartford17a/hartford17a.pdf).  Deep learning is actually totally ancillary to the core idea of the paper, which is that you can approach nonparametric instrumental variables as two supervised learning problems.  Here, I'll:
-1. discuss what nonparametric instrumental variables is, and how the DeepIV paper approaches the problem
-2. re-implement the core idea of breaking nonparametric IV into two supervised learning problems, but without any deep learning
-3. build a simple simulation environment and apply this re-implementation to some simulated data
-4. discuss/illustrate some potential challenges to this core idea
+Here's a pretty fun [paper on deep instrumental variables](http://proceedings.mlr.press/v70/hartford17a/hartford17a.pdf).  Deep learning is actually totally ancillary to the core idea of the paper, which is that you can approach nonparametric instrumental variables as two supervised learning problems.  Here, I'll do two things:
+- I. background:
+	- what nonparametric instrumental variables is
+	- some theory relating to identification/estimation
+	- how the DeepIV paper approaches the problem
+- II. re-implementation:
+	- [re-implement the core idea of breaking nonparametric IV into two supervised learning problems, but without any deep learning](https://github.com/j-mark-hou/npiv)
+	- build a simple but plausible-looking simulation environment to apply this re-implementation
+	- discuss / illustrate some potential challenges to this core idea
 
 ### I. Background / theory
 #### I.1. Instrumental variables (IV)
@@ -126,7 +130,7 @@ Overall, general theory for identification/estimation of nonparametric IV is som
 #### I.4. Deep IV
 Thankfully, we're now at a point in history where it's not too insane to just throw function approximators at various problems and have it work pretty well even if it's not entirely clear why.  So, even with a lack of theoretical guarantees about identification / estimation, it's not a bad idea to just go ahead and just try to do something reasonable, and hope that things work out.
 
-The Deep IV paper proposes to do a very reasonable thing:
+The core idea of the Deep IV paper is to do this very reasonable thing:
 1. Do standard supervised learning to estimate $$F(x\mid z)$$.  This is the 'first stage'.
 1. Use your $$\hat{F}(x\mid z)$$ as a proxy for the truth $$F(x\mid z)$$, find $$\hat{g}$$ so that $$\mathbb{E}[y\mid z] = \int d\hat{F}(x\mid z) \hat{g}(x)$$ is approximately satisfied in your data.  This is the 'second stage'
 
@@ -143,7 +147,7 @@ $$
 \begin{align}
 \hat{g}&= \arg\min_{\tilde{g}}\sum_i\left(y_i - \int d\hat{F}(x\mid z_i) \tilde{g}(x)\right)^2 \newline
 & \approx \arg\min_{\tilde{g}}\sum_i\left(y_i - \sum_{x_{ij}\sim \hat{F}(x_{ij}\mid z_i)} \tilde{g}(x)\right)^2
-\label{obj}
+\label{trueobj}
 \tag{3}
 \end{align}
 $$
@@ -157,16 +161,60 @@ $$
 \hat{g}&= \arg\min_{\tilde{g}}\sum_i\int d\hat{F}(x\mid z_i) \left(y_i - \tilde{g}(x)\right)^2 \newline
  & \approx \arg\min_{\tilde{g}}\sum_i \sum_{x_{ij}\sim \hat{F}(x_{ij}\mid z_i)} \left(y_i - \tilde{g}(x_{ij})\right)^2
 \tag{4}
-\label{ezobj}
+\label{upperobj}
 \end{align}
 $$
 
 With this, you can just randomly draw a bunch of $$\hat{x}_{ij}$$s for each $$z_i$$ according to $$\hat{F}(x\mid z_i)$$, treat this new set of $$(y_i, \hat{x}_{ij}, z_i)$$ as your data and then just do straight-up supervised learning on this instead.  However, just swapping out one objective function for another is a bit questionable, and certainly if we had consistency before we would lose it by doing this (as we'll see below, this fails in quite trivial cases).  But at the end of the day, everything that we're doing here is a bit suspicious from a theoretical perspective, and this swapping out kind of feels not that unreasonable.  So, worth trying out, especially because it's easy.
 
+Ok, so now regarding the 'deep' in DeepIV:  for both the first and second stages the paper proposes to use neural networks.  The first stage model uses a neural network to learn a mixture of gaussians to approximate $$F(x\mid z)$$, and the second stage uses a neural network to optimize one of the two objectives \eqref{trueobj} or \eqref{upperobj}.
 
 ### II. Re-implementation
-#### II.1. Basic idea
-TODO: discuss difference (quantile) and implementation details
+#### II.1. Implementation details
+Deep learning is great, but we can just as well use other function approximators in its stead.  Especially for applications domains other than image/text, more classical methods may often be preferable for ease/performance/interpretability reasons.
+
+[So I went ahead and wrote up an alternative implementation](https://github.com/j-mark-hou/npiv) based on tree boosting and quantile objectives rather than neural networks and Gaussian mixtures.  The main class of interest is [```NonparametricIV```, implemented in ```npiv/nonparametric_iv.py```](https://github.com/j-mark-hou/npiv/blob/master/npiv/nonparametric_iv.py), which implements the two stages described above.
+
+1. the stage1 model approximates $$F(x\mid z)$$ via some number of predicted quantiles 
+	- this is done through LightGBM's quantile regression functionality.
+		- [I've discussed implementation details of this functionality of this package previously]({% post_url 2018-08-01-lgbqr %})
+	- [the default set of quantiles is defined here in ```NonparametricIV.train_stage1()```](https://github.com/j-mark-hou/npiv/blob/master/npiv/nonparametric_iv.py#L230)
+		- by default, 10 quantiles are used, from .05 to .95
+		- the training parameters for each quantile are all the same by default
+	- [the training of the stage1 models is implemented here in ```NonparametricIV._init_stage1()```](https://github.com/j-mark-hou/npiv/blob/master/npiv/nonparametric_iv.py#L67)
+		- this literally just trains LightGBM model for each quantile using the defined parameters
+	- [these models are then used to predict the conditional quantiles for each observation in the training data in ```NonparametricIV._generate_stage2_data()```](https://github.com/j-mark-hou/npiv/blob/master/npiv/nonparametric_iv.py#L337)
+		- that is, the implementaiton here uses these predicted quantiles to approximate the conditional distribution of $$F(x\mid z)$$ rather than estimating some parametric distribution and then sampling from that
+		- this method duplicates the data a lot, so that we have a long dataframe with a row for each (observation, quantile) pair, leading to 10x the number of rows if using default settings
+		- this ```stage2_data``` is then used for training the stage2 models
+2. the stage2 model targets either the true objective \eqref{trueobj} or the upper bound objective \eqref{upperobj} via several possible function approximators
+	- there are two function approximators available here:
+		- LightGBM, which is the default one
+		- and linear, which exists mostly for sanity checking purposes (or I guess if you have strong parametric beliefs about the shape of the stage2 model)
+		- [the ```stage2_model_type``` initialization argument](https://github.com/j-mark-hou/npiv/blob/master/npiv/nonparametric_iv.py#L50) defines whether to use LightGBM 
+	- [the ```stage2_objective``` initialization argument](https://github.com/j-mark-hou/npiv/blob/master/npiv/nonparametric_iv.py#L52) defines whether to use the true objective \eqref{trueobj} or the upper bound objective \eqref{upperobj}
+	- this gives us 4 different possible configurations of the stage 2 model, [which are implemeted in ```NonparametricIV.train_stage2()```](https://github.com/j-mark-hou/npiv/blob/master/npiv/nonparametric_iv.py#L130)
+		- the 2 cases with upper bound objective are relatively straightforward:
+			- [upper bound objective, linear approximator](https://github.com/j-mark-hou/npiv/blob/master/npiv/nonparametric_iv.py#L195):
+				- this is probably the easiest case to implement, as it's literally just linear regression
+			- [upper bound objective, LightGBM approximator](https://github.com/j-mark-hou/npiv/blob/master/npiv/nonparametric_iv.py#L175):
+				- this is also fairly straightforward, as it's just straight-up regression objective using LightGBM
+		- the 2 cases involving the true objective are more involved, as the expression in \eqref{trueobj} has a sum inside the square
+			- this requires some [custom objectives which we implment in ```npiv/custom_objectives.py```)](https://github.com/j-mark-hou/npiv/blob/master/npiv/custom_objectives.py)
+				- these custom objective assume that there is a ```grp_col``` variable that indicates which rows of the ```stage2_data``` correspond to the same observation (recall that we generated e.g. 10 predicted quantiles for each observation, so that we have e.g. 10 rows for each observation)
+				- ```grouped_sse_loss()``` is what it sounds like: it computes the sum of squared errors, except that we sum the predicted and true y-values within all observations with a single group before taking the squared error, which is what the true objective \eqref{trueobj} requires
+				- ```grouped_sse_linear()``` just uses a linear function to generated the predicted value, then computed the grouped sse loss
+				- ```grouped_sse_loss_grad_hess()``` analytically computes the first and second derivatives of ```grouped_sse_loss()``` with respect to each predicted y-value and returns them
+			- [true objective, linear approximator](https://github.com/j-mark-hou/npiv/blob/master/npiv/nonparametric_iv.py#L188):
+				- this involves optimizing the custom objective ```grouped_sse_linear()```
+				- we do so by relying on some gradient-free optimization from scipy (by default Nelder-Mead)
+			- [true objective, LightGBM approximator](https://github.com/j-mark-hou/npiv/blob/master/npiv/nonparametric_iv.py#L162)
+				- LightGBM just requires that we provide the gradient and hessian of the objective function wrt the predicted y-values, which is why we have this ```grouped_sse_loss_grad_hess()``` function
+				- we just call LightGBM with this custom objective, using ```grouped_sse_loss()``` as the corresponding custom metric
+
+
+
+
 
 #### II.2. Synthetic experiment setting
 We'll build a synthetic setting that is (1) realistic-ish, and (2) fairly simple to function as a minimal test for our implementatin of nonparametric/deep iv.
