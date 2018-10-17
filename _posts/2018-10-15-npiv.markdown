@@ -36,7 +36,7 @@ So, the most natural thing you can do to figure out how $$x$$ affects $$y$$ is t
 $$\hat{g}(x):=\mathbb{E}_n[y|x]$$.  It's clear that if $$\mathbb{E}[\epsilon \mid x]=0$$, then $$\hat{g}(x)\rightarrow g(x)$$ for all $$x$$, so that as you get more and more data you'll eventually learn the function $$g$$.  
 
 This method of requires that $$\mathbb{E}[\epsilon \mid x]=0$$.  Unfortunately, this assumption is often violated.  For each of the above examples:
-1. The higher priced items are also higher quality, and higher quality items sell more, so that quality drives a part of $$\epsilon$$, so that $$\epsilon$$ is correlated with price $$x$$.
+1. The higher priced items are also likely to be items that people can't buy anywhere else, and as such may sell more, so that the 'substitutability' of an item drives a part of $$\epsilon$$, so that $$\epsilon$$ is correlated with price $$x$$.
 2. Your social media platform's machine learning team has already optimized ad targeting a bit, so that people that get shown more ads are naturally more patient, and more patient people spend more time on your platform, so that patience drives a part of $$\epsilon$$, so that $$\epsilon$$ is correlated with number of ads the person sees $$x$$.
 3. People who are more intelligent tend to get more education, but intelligence itself also affects how much you earn, so that intelligence drives a part of $$\epsilon$$, so that $$\epsilon$$ is correlated with education level $$x$$.
 
@@ -98,7 +98,7 @@ Alright, let's do some examples of equation \eqref{fredholm} to fix intuition:
 	- \eqref{fredholm} becomes $$\mathbb{E}[y\mid z] = \int dF(x\mid z) x\cdot\beta$$ which implies $$\mathbb{E}[y\mid z] = \mathbb{E}[x\mid z]\cdot\beta = (Az)\cdot\beta$$.
 	- You can estimate $$A$$ since $$\mathbb{E}[x\mid z]=Az$$ and you observe $$\mathbb{E}[x\mid z]$$ and $$z$$.
 	- You can estimate $$\beta$$ since you observe $$Az$$ and $$\mathbb{E}[y\mid z]$$ and $$Az$$ spans the same space as $$x$$ as you vary $$z$$.
-	- This is just your typical linear instrumental variables setup, where in your first stage you estimate how your $$z$$ affects your $$x$$ (which is the $$A$$), and then in your second stage where you plug in your first-stage estimate of $$x$$ given $$z$$ (which is $$Az$$) to estimate $$\beta$$.
+	- This is just your typical linear instrumental variables setup, where first you estimate how your $$z$$ affects your $$x$$ (which is the $$A$$), and then plug in these estimates of $$x$$ given $$z$$ (which is $$Az$$) to estimate $$\beta$$.
 
 #### I.3. Identification? Estimation?
 Given that we want to back out $$g$$ using \eqref{fredholm}, it would be nice if there were some identification conditions telling us whether/when there's only a single function $$g$$ that satisfies \eqref{fredholm} out of some class of functions $$\mathcal{G}$$.  Identification holds IFF a 'completeness' condition holds.  Roughly this completeness condition amounts to a requirement that any random variable $$\tilde{g}(x)$$ for $$\tilde{g}\in \mathcal{G}$$ must somehow not exploit any information that's present in $$x$$ but not in $$z$$:
@@ -131,17 +131,17 @@ Overall, general theory for identification/estimation of nonparametric IV is som
 Thankfully, we're now at a point in history where it's not too insane to just throw function approximators at various problems and have it work pretty well even if it's not entirely clear why.  So, even with a lack of theoretical guarantees about identification / estimation, it's not a bad idea to just go ahead and just try to do something reasonable, and hope that things work out.
 
 The core idea of the Deep IV paper is to do this very reasonable thing:
-1. Do standard supervised learning to estimate $$F(x\mid z)$$.  This is the 'first stage'.
-1. Use your $$\hat{F}(x\mid z)$$ as a proxy for the truth $$F(x\mid z)$$, find $$\hat{g}$$ so that $$\mathbb{E}[y\mid z] = \int d\hat{F}(x\mid z) \hat{g}(x)$$ is approximately satisfied in your data.  This is the 'second stage'
+1. Do standard supervised learning to estimate $$F(x\mid z)$$.  This is 'stage1'.
+1. Use your $$\hat{F}(x\mid z)$$ as a proxy for the truth $$F(x\mid z)$$, find $$\hat{g}$$ so that $$\mathbb{E}[y\mid z] = \int d\hat{F}(x\mid z) \hat{g}(x)$$ is approximately satisfied in your data.  This is 'stage2'
 
 This is quite intuitive: if we have lots of data, we can get a pretty good estimate of $$F(x\mid z)$$, and also of $$\mathbb{E}[y\mid z]$$.  We're going to hope that we live in a world where $$g$$ is identified and not too ill-posed.  If that's the case, then as we get a lot of data, we'll be able to learn $$g$$.  
 
 This strategy is also quite nice, because it breaks the problem of estimating $$g$$ into two supervised leanring problems, both of which are fairly easy to throw function approximators at.  
-1. For the first stage, both $$x$$ and $$z$$ are observable.  The complication here is that, instead of trying to predict $$\mathbb{E}[x\mid z]$$ as a function of $$z$$, you're trying to predict the entire distribution of $$x$$ given $$z$$.  Distributions are generally much more difficult to predict, particularly if $$x$$ is multidimensional, but there's various things you can do.  Two immediate examples: 
+1. For the stage1, both $$x$$ and $$z$$ are observable.  The complication here is that, instead of trying to predict $$\mathbb{E}[x\mid z]$$ as a function of $$z$$, you're trying to predict the entire distribution of $$x$$ given $$z$$.  Distributions are generally much more difficult to predict, particularly if $$x$$ is multidimensional, but there's various things you can do.  Two immediate examples: 
 - Assume there's some parametric form for $$F(x\mid z)$$, so you're only predicting a finite number of parameters. E.g. assume normal / mixture of normals (this is what the Deep IV paper does).
 - If the distribution of $$x\mid z$$ is just 1-dimensional, then you can just estimate quantiles of $$F(x\mid z)$$.
 - Discretize your $$x$$-space and estimate a categorical distribution on the grid.  
-2. For the second stage, this is also a supervised learning problem: You have $$N$$ observations $$y_i, x_i, z_i$$, and you're trying to find some $$\hat{g}$$ such that \eqref{fredholm} holds approximately in your data.  That is, you want to pickg $$g$$ that makes $$\mathbb{E}[y\mid z]$$ and $$\int d\hat{F}(x\mid z) \hat{g}(x)$$ very close to each other in your data.  So, you can think about minimizing the squared loss:
+2. For stage2, this is also a supervised learning problem: You have $$N$$ observations $$y_i, x_i, z_i$$, and you're trying to find some $$\hat{g}$$ such that \eqref{fredholm} holds approximately in your data.  That is, you want to pickg $$g$$ that makes $$\mathbb{E}[y\mid z]$$ and $$\int d\hat{F}(x\mid z) \hat{g}(x)$$ very close to each other in your data.  So, you can think about minimizing the squared loss:
 
 $$
 \begin{align}
@@ -152,7 +152,7 @@ $$
 \end{align}
 $$
 
-where in the second step we've replaced the internal integral with a sum, because the integral $$\int d\hat{F}(x\mid z_i) \tilde{g}(x))$$ will need to be implemented by sampling a bunch of $$x_{ij}\sim \hat{F}(x\mid z_i)$$ and then taking a sum.
+where we've replaced the internal integral with a sum, because the integral $$\int d\hat{F}(x\mid z_i) \tilde{g}(x))$$ will need to be implemented by sampling a bunch of $$x_{ij}\sim \hat{F}(x\mid z_i)$$ and then taking a sum.
 - You can parameterize your $$\tilde{g}$$ as a function of some stuff, in which case you can just go ahead and do gradient descent or something like that.  The Deep IV paper uses a neural network here.
 - There's some amount of complication here, in that there's a sum on the inside of your square that you need to evaluate every time you want to evaluate the objective function, and that's kind of hard to deal with.  So, one thing you can do is to just move the sum outside of the square.  This amounts to using a different objective function (that upper bounds the previous one via Jensen):
 
@@ -167,22 +167,23 @@ $$
 
 With this, you can just randomly draw a bunch of $$\hat{x}_{ij}$$s for each $$z_i$$ according to $$\hat{F}(x\mid z_i)$$, treat this new set of $$(y_i, \hat{x}_{ij}, z_i)$$ as your data and then just do straight-up supervised learning on this instead.  However, just swapping out one objective function for another is a bit questionable, and certainly if we had consistency before we would lose it by doing this (as we'll see below, this fails in quite trivial cases).  But at the end of the day, everything that we're doing here is a bit suspicious from a theoretical perspective, and this swapping out kind of feels not that unreasonable.  So, worth trying out, especially because it's easy.
 
-Ok, so now regarding the 'deep' in DeepIV:  for both the first and second stages the paper proposes to use neural networks.  The first stage model uses a neural network to learn a mixture of gaussians to approximate $$F(x\mid z)$$, and the second stage uses a neural network to optimize one of the two objectives \eqref{trueobj} or \eqref{upperobj}.
+Ok, so now regarding the 'deep' in DeepIV:  for both stage1 and stage2, the paper proposes to use neural networks.  The stage1 model uses a neural network to learn a mixture of gaussians to approximate $$F(x\mid z)$$, and stage2 uses a neural network to optimize one of the two objectives \eqref{trueobj} or \eqref{upperobj}.
 
 ### II. Re-implementation
 #### II.1. Implementation details
 Deep learning is great, but we can just as well use other function approximators in its stead.  Especially for applications domains other than image/text, more classical methods may often be preferable for ease/performance/interpretability reasons.
 
-[So I went ahead and wrote up an alternative implementation](https://github.com/j-mark-hou/npiv) based on tree boosting and quantile objectives rather than neural networks and Gaussian mixtures.  The main class of interest is [```NonparametricIV```, implemented in ```npiv/nonparametric_iv.py```](https://github.com/j-mark-hou/npiv/blob/master/npiv/nonparametric_iv.py), which implements the two stages described above.
+[So I went ahead and wrote up an alternative implementation](https://github.com/j-mark-hou/npiv) based on tree boosting and conditional quantiles rather than neural networks and Gaussian mixtures.  
 
+The main class of interest is [```NonparametricIV```, implemented in ```npiv/nonparametric_iv.py```](https://github.com/j-mark-hou/npiv/blob/master/npiv/nonparametric_iv.py), which encapsulates the two stages described above.
 1. the stage1 model approximates $$F(x\mid z)$$ via some number of predicted quantiles 
 	- this is done through LightGBM's quantile regression functionality.
 		- [I've discussed implementation details of this functionality of this package previously]({% post_url 2018-08-01-lgbqr %})
-	- [the default set of quantiles is defined here in ```NonparametricIV.train_stage1()```](https://github.com/j-mark-hou/npiv/blob/master/npiv/nonparametric_iv.py#L230)
+	- [the default set of quantiles is defined here in ```NonparametricIV._init_stage1()```](https://github.com/j-mark-hou/npiv/blob/master/npiv/nonparametric_iv.py#L230)
 		- by default, 10 quantiles are used, from .05 to .95
 		- the training parameters for each quantile are all the same by default
-	- [the training of the stage1 models is implemented here in ```NonparametricIV._init_stage1()```](https://github.com/j-mark-hou/npiv/blob/master/npiv/nonparametric_iv.py#L67)
-		- this literally just trains LightGBM model for each quantile using the defined parameters
+	- [the training of the stage1 models is implemented here in ```NonparametricIV.train_stage1()```](https://github.com/j-mark-hou/npiv/blob/master/npiv/nonparametric_iv.py#L67)
+		- this literally just trains a LightGBM model for each quantile using the defined parameters
 	- [these models are then used to predict the conditional quantiles for each observation in the training data in ```NonparametricIV._generate_stage2_data()```](https://github.com/j-mark-hou/npiv/blob/master/npiv/nonparametric_iv.py#L337)
 		- that is, the implementaiton here uses these predicted quantiles to approximate the conditional distribution of $$F(x\mid z)$$ rather than estimating some parametric distribution and then sampling from that
 		- this method duplicates the data a lot, so that we have a long dataframe with a row for each (observation, quantile) pair, leading to 10x the number of rows if using default settings
@@ -194,36 +195,36 @@ Deep learning is great, but we can just as well use other function approximators
 		- [the ```stage2_model_type``` initialization argument](https://github.com/j-mark-hou/npiv/blob/master/npiv/nonparametric_iv.py#L50) defines whether to use LightGBM 
 	- [the ```stage2_objective``` initialization argument](https://github.com/j-mark-hou/npiv/blob/master/npiv/nonparametric_iv.py#L52) defines whether to use the true objective \eqref{trueobj} or the upper bound objective \eqref{upperobj}
 	- this gives us 4 different possible configurations of the stage 2 model, [which are implemeted in ```NonparametricIV.train_stage2()```](https://github.com/j-mark-hou/npiv/blob/master/npiv/nonparametric_iv.py#L130)
-		- the 2 cases with upper bound objective are relatively straightforward:
+		- the two cases with upper bound objective are relatively straightforward:
 			- [upper bound objective, linear approximator](https://github.com/j-mark-hou/npiv/blob/master/npiv/nonparametric_iv.py#L195):
 				- this is probably the easiest case to implement, as it's literally just linear regression
 			- [upper bound objective, LightGBM approximator](https://github.com/j-mark-hou/npiv/blob/master/npiv/nonparametric_iv.py#L175):
 				- this is also fairly straightforward, as it's just straight-up regression objective using LightGBM
-		- the 2 cases involving the true objective are more involved, as the expression in \eqref{trueobj} has a sum inside the square
+		- the two cases with the true objective are more involved, as the expression in \eqref{trueobj} has a sum inside the square
 			- this requires some [custom objectives which we implment in ```npiv/custom_objectives.py```)](https://github.com/j-mark-hou/npiv/blob/master/npiv/custom_objectives.py)
 				- these custom objective assume that there is a ```grp_col``` variable that indicates which rows of the ```stage2_data``` correspond to the same observation (recall that we generated e.g. 10 predicted quantiles for each observation, so that we have e.g. 10 rows for each observation)
 				- ```grouped_sse_loss()``` is what it sounds like: it computes the sum of squared errors, except that we sum the predicted and true y-values within all observations with a single group before taking the squared error, which is what the true objective \eqref{trueobj} requires
-				- ```grouped_sse_linear()``` just uses a linear function to generated the predicted value, then computed the grouped sse loss
-				- ```grouped_sse_loss_grad_hess()``` analytically computes the first and second derivatives of ```grouped_sse_loss()``` with respect to each predicted y-value and returns them
+				- ```grouped_sse_linear()``` just uses a linear function to generated the predicted y-value, then computed the grouped sse loss
+				- ```grouped_sse_loss_grad_hess()``` analytically computes the first and second derivatives of ```grouped_sse_loss()``` with respect to each predicted y-value
 			- [true objective, linear approximator](https://github.com/j-mark-hou/npiv/blob/master/npiv/nonparametric_iv.py#L188):
 				- this involves optimizing the custom objective ```grouped_sse_linear()```
-				- we do so by relying on some gradient-free optimization from scipy (by default Nelder-Mead)
+				- we do so by relying on some gradient-free optimization method from scipy (by default Nelder-Mead)
 			- [true objective, LightGBM approximator](https://github.com/j-mark-hou/npiv/blob/master/npiv/nonparametric_iv.py#L162)
 				- LightGBM just requires that we provide the gradient and hessian of the objective function wrt the predicted y-values, which is why we have this ```grouped_sse_loss_grad_hess()``` function
 				- we just call LightGBM with this custom objective, using ```grouped_sse_loss()``` as the corresponding custom metric
 
 
-In addition, in order to assess how good our estimated models are, we'll need some functions for introspecting the behavior of these models
+In addition, in order to assess how good our trained models are, we'll need some functions for introspecting the behavior of these models
 - for linear models, you can just... look the coefficients
 - for nonparametric models, like the LightGBM models, we can do something similar, where we look at the marginal effects of each variable
 	- this is implemented in [```ModelWrapper.marginal_effect_plots()``` in ```npiv/model_wrapper.py```](https://github.com/j-mark-hou/npiv/blob/master/npiv/model_wrapper.py#L50)
 	- it literally takes an input dataframe, perturbs the x-column in question a tiny bit, records the corresponding change in y, and then returns the distribution of that across all observations in the dataframe
-	- note that this just produces the coefficients for linear models ([which forms the basis for one of our unit tests](https://github.com/j-mark-hou/npiv/blob/master/tests/test_model_wrapper.py#L26))
+	- note that this just produces the coefficients for linear models ([which forms the basis for one of the unit tests](https://github.com/j-mark-hou/npiv/blob/master/tests/test_model_wrapper.py#L26))
 	- as a result, if the true model is linear, we would prefer that our estimated marginal effects all be clustered very tightly around the corresponding coefficient of the true linear model
 
 
 #### II.2. Synthetic experiment setting
-We'll build a synthetic setting that is (1) realistic-ish, and (2) fairly simple to function as a minimal test for our implementatin of nonparametric/deep iv.  The **simulation setup is linear in both the first and second stage**, so as to be as trivial as possible.
+We'll build a synthetic setting that is (1) realistic-ish, and (2) fairly simple, to function as a minimal test for our implementation of nonparametric/deep iv.  The **simulation setup is linear in both stage1 and stage2**, so as to be as trivial as possible.
 
 [Implementation is in the ```IVSimulator``` class in ```npiv/iv_simulator.py```](https://github.com/j-mark-hou/npiv/blob/master/npiv/iv_simulator.py)
 - the setting is e-commerce
@@ -233,14 +234,14 @@ We'll build a synthetic setting that is (1) realistic-ish, and (2) fairly simple
 	- [this correlation comes from the prices being chosen to be almost profit-maximizing given elasticity](https://github.com/j-mark-hou/npiv/blob/master/npiv/iv_simulator.py#L173)
 - instrument is a random experimental [price shock of up to $$10\%$$ is either the positive or negative direction](https://github.com/j-mark-hou/npiv/blob/master/npiv/iv_simulator.py#L96)
 - y-variable ```log_sales``` 
-- true mapping from ```exog_x_cols``` and ```instrument``` to quantiles of ```log_price``` is also linear
-	- [the unobserved optimal prices are created here](https://github.com/j-mark-hou/npiv/blob/master/npiv/iv_simulator.py#L93) via ```generate_log_optimal_prices()``` and ```generate_log_costs()``` that are both linear, and then some random noise and the instrument is added
+- true mapping from ```exog_x_cols``` and ```instrument``` to quantiles of ```log_price``` is linear
+	- [the unobserved optimal prices are created here](https://github.com/j-mark-hou/npiv/blob/master/npiv/iv_simulator.py#L93) via ```generate_log_optimal_prices()``` and ```generate_log_costs()``` that are both linear, and then some random noise and the instrument are added
 	- we'll try to recover these quantiles in stage1 of NonparametricIV
-- true mapping from ```exog_x_cols``` and ```log_price``` to ```log_sales``` is a linear function, with [coefficients in ```log_sales_coefs```](https://github.com/j-mark-hou/npiv/blob/master/npiv/iv_simulator.py#L19)
+- true mapping from ```exog_x_cols``` and ```log_price``` to ```log_sales``` is linear, with [coefficients in ```log_sales_coefs```](https://github.com/j-mark-hou/npiv/blob/master/npiv/iv_simulator.py#L19)
 	- we'll try to recover these true coefficients in stage2 of NonparametricIV
 
 #### II.3. Some points, illustrated via synthetic data
-We can now go about applying NonparametricIV to data generaetd from IVSimulator to illustrate some interesting points.
+We can now go about applying NonparametricIV to data generated from IVSimulator to illustrate some interesting points.
 
 [This notebook contains the setup/experiments/graphs/whatever for everything discussed below. The section numbers below will refer to sections in this notebook (because apparently I can't link directly to sections of a notebook in github?).](https://github.com/j-mark-hou/npiv/blob/master/example/example.ipynb)  
 
@@ -258,9 +259,10 @@ Some preliminaries:
 	- as expected, 2 stage least squares (e.g. linear IV) works quite well, as the simulation setting is in fact linear in both stage1 and stage2
 
 
-Now, onto the key points:
+Now, some points:
 - **NonparametricIV works... kind of?**
-	- section 1.a. : the stage1 model predicts quantiles that are almost exactly on point, certainly far better than you would expect in real life
+	- section 1.a. : the stage1 models are extremely good, and predicts quantiles that are extremely concentrated around the truth
+		- this is certainly far better than what you would expect on real life problems
 	- section 1.b. : the stage2 model's marginal effects don't look too terrible? (we use the true objective, not the upper bound objective here, for reasons discussed below)
 		- the average marginal effect on the ```log_price``` is around -3, whereas the truth is -4
 		- for the ```exog_x_cols``` the marignal effects are around 0, whereas truth is around .7
@@ -272,21 +274,21 @@ Now, onto the key points:
 		- the training data is the same 16000 observations
 	- section 2.c.IV. has the analogue of section 1 above, except with true quantiles rather than predicted
 		- performance is better than in section 1: marginal effect of ```log_price``` is centered at -3.6 vs -3.1 in section 1, and marigal effects on ```exog_x_cols``` are also closer to the truth
-		- this is a bit surprising, given how _incrediby good_ the stage1 quantile models in section1 were, that going from those predictions to truth still produced large improvements in stage2 performance
+		- this is a bit surprising, given how _incrediby good_ the stage1 quantile models in section 1 were, that going from those predictions to truth still produced large improvements in stage2 performance
 	- similarly if we take the true quantiles and add noise to them as in section 2.e., then performance predictably decreases
-	- this thematically similar to a fairly key point from another [econ-ML paper on double machine learning]({% post_url 2018-07-22-dml %}), which requries L2 convergence of some stage1 estimate in order to get $$\sqrt{n}$$-consistent estimates of some stage2 parameter
+	- this is thematically similar to a fairly key point from another [economics/machine learning paper on estimating stuff in two stages]({% post_url 2018-07-22-dml %}), which requries L2 convergence of some stage1 estimate in order to get $$\sqrt{n}$$-consistent estimates of some stage2 parameter
 - **regularization is pretty hard to get right**
 	- in both sections 1.b and 2.c.IV, the loss-minimizing number of rounds to train was very small (<1000), and the implied marginal effects computed at that point would have been much worse than the ones generated after training for 10000 rounds
 		- thus, performing early stopping via a validation set (as you would do in a typical supervised learning context) leads to significant bias
-		- however, the variance of the estimated marginal effects is also much smaller if we only use a a small number of trees
-		- this appears to be a fairly standard example of bias-variance tradeoff
+		- however, the variance of the estimated marginal effects is also much smaller if we do early stopping
+		- this feels like a fairly standard example of bias-variance tradeoff
 	- in section 2.d. we increase a regularization parameter dramatically (```min_gain_to_split```), and then re-train the stage2 model
 		- this leads to biased marginal effects, e.g. on average around -2 for ```log_price``` rather than the true value of -4
 		- the validation loss function is actually lower here relative to 2.c.IV
-	- it's unclear if model selection via validation-set performance is a good approach here
+	- thus, it's unclear if model selection via validation-set performance is a good approach here
 - **upper-bound objective is trivially inconsistent**
 	- this is easy to see: 
-		- in 2SLS, the second stage just takes each observation and replaces the ```log_price``` and replaces it with $$\mathbb{E}[$$```log_price``` $$\mid$$ ```exog_x_cols```, ```instrument```$$]$$
+		- in 2SLS, the stage2 just takes each observation and replaces the ```log_price``` and replaces it with $$\mathbb{E}[$$```log_price``` $$\mid$$ ```exog_x_cols```, ```instrument```$$]$$
 		- in the stage2 of NonparametricIV, we're producing multiple quantiles of (```log_price``` $$\mid$$ ```exog_x_cols```, ```instrument```) instead of just the mean
 		- this is identical to taking the specification in stage2 of 2SLS and adding noise to $$\mathbb{E}[$$```log_price``` $$\mid$$ ```exog_x_cols```, ```instrument```$$]$$
 		- this is errors in variables, which leads to attenuation bias
@@ -296,15 +298,19 @@ Now, onto the key points:
 #### II.4. Potential follow-up work 
 So, overall it looks like this core idea of breaking up nonparametric instrumental variables into two different supervised learning problems has some promise.  Some points regarding future work:
 - sharing information across quantiles
-	- right now, each quantile is estimated separately
+	- right now, each quantile model is trained separately
 	- there may be some benefit to jointly estimating the conditional distribution of $$F(x\mid z)$$ instead
 	- the DeepIV implementation does something like this, but at the cost of imposing a somewhat more structured parametric form for this distribution
 	- maybe some post-processing shrinkage of the predicted quantiles so that e.g. implied standard deviation for similar observations don't vary too much
-- regularization / early stopping seems hard to get right in stage2, so maybe we should some algorithm in stage2 that doesn't overfit so easily
-	- so, probably some averaging-based method like random forests, which is somewhat more robust than gradient boosting or neural networks
+- regularization / early stopping seems hard to get right in stage2, so maybe consider using some algorithm in stage2 that doesn't overfit so easily
+	- so, probably some averaging-based method like random forests, which is somewhat more robust to overfitting than gradient boosting or neural networks
 		- didn't do this here because the LightGBM random forest doesn't appear to currently support custom objectives...
 	- also, sample splitting is a pretty reliable way to robustify stuff, so maybe do that as well in training these models (e.g. build trees using one subset of the data, fill in the leaf values with another)
 		- again, something that would take some more effort to implement
+- as a minimal example, we've only evaluated this algorithm on a fairly trivial example here, so we can probably do some more examples to build intuition
+	- probably try more data
+	- probably try more covariates
+	- probably try some nonlinearities
 - the custom objectives used here are very slow, as they're implemented using aggregation functions in pandas [see ```npiv/custom_objectives.py```)](https://github.com/j-mark-hou/npiv/blob/master/npiv/custom_objectives.py)
-	- this is fine for protyping but taking 10 minutes to train a model on 16000 observations renders this fairly impractical for real-life work
+	- this is fine for protyping, but taking 10 minutes to train a model on 16000 observations renders this fairly impractical for any real-life work
 	- so maybe modify LightGBM and directly implement these loss functions in C++
