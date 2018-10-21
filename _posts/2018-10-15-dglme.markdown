@@ -22,15 +22,52 @@ categories: statistics, economics
 		- for some reasonable models of markets, complexity is polynomial (and sometimes even quite fast
 		- but given the scale of the markets of interest described above, even writing down the entire market is a challenge
 	3. there's also been some recent-ish work in math / stats on characterizing the limit behavior of graphs
-- I'll discuss how results from these three areas can be used to approach the problem of characterizing equilibrium behavior in large markets
+- I'll discuss how results from these three areas can be used to tackle the problem of characterizing equilibrium behavior in large markets
+
+
 
 
 ### I. Classical general equilibrium
-A little bit after Nash applied fixed point theory to 
+A little bit after Nash applied fixed point techniques to game theory, Arrow and Debreu did something similar for general equilibrium.  This result applies to quite general markets with general utility functions and production functions, but we'll be extremely concrete here and focus on a simple market with no production / no endowments / specific utilities (CES Fisher market):
+- goods $$j = 1,...,J$$
+	- each good has total supply $$y_j$$
+- consumers $$i = 1,...,I$$
+	- each consumer has total budget $$B_i$$ to spend on stuff
+	- utility function $$u_i(x_i) = \sum_j\left(\alpha_{ij}x_{ij}^{\frac{\sigma-1}{\sigma}} \right)^{\frac{\sigma}{\sigma-1}}$$ with $$\sum_j \alpha_{ij}=1$$ and $$\sigma>1$$
+		- a little calculus gives us that, given prices $$p = (p_1,...,p_J)$$, the optimal amount of each item to buy is $$x^*_{ij}(p) = \frac{(\alpha_{ij}/p_j)^\sigma}{\sum_j (\alpha_{ij}/p_j)^\sigma p_j} B_i$$
+		- for $$\sigma<\infty$$, the marginal utility of each good decreases as $$x_{ij}$$ increases
+		- for $$\sigma\rightarrow\infty$$ gives us approximately linear utility, with constant marginal utility
+- an equilibrium is defined by prices $$p^*$$ such that supply and demand are equal:  $$\sum_i x^*_{ij} = y_j$$
+
+Does this seem reasonable?
+- there is a fixed set of goods and no production, and consumer are allocated money but no goods
+	- seems reasonably represenative of some market over a short period of time
+- this is a static market (in that there's no explicit concept of time)
+	- again, reasonable for considering markets over short periods of time
+- consumers have preferences over goods but not money, and thus spend all of their money on goods
+	- this is less reasonable of an assumption, as you would expect consumers to... not spend all of their money?
+	- not hard to relax this assumption
+- quantities are infinitely divisible
+	- this is an assumption made for analytical tractability, and doesn't match so well with reality
+	- need to justify this on a case-by-case basis
+
+Classical results give us:
+- existence of equilibrium via Kakutani fixed point theorem
+	- in this particular case, equilibrium is unique
+	- so Brouwer would also work here
+- upper hemicontinuity of the equilibrium price in the model parameters (e.g. $$\alpha, \sigma, B$$ and even $$I$$)
+	- this is a consequence of Berge theorem for upper hemicontinuity of argmax
+	- in this particular case it's just continuity, as the argmax consumption bundle $$x^*_i(p)$$ is unique
+
+This is nice, but:
+- these results don't tell us how to actually compute the equillibrium prices $$p^*$$
+- these results don't tell us what hapens when both $$I,J$$ go to $$\infty$$
 
 
 
-### II. Algorithms for computing equilibrium
+
+
+### II. Computing equilibrium
 
 ### III. Graph Limits
 
@@ -52,6 +89,8 @@ walrasian market as
 
 
 ### References
+- Arrow Debreu 1954: [ Existence of an Equilibrium for a Competitive Economy](https://web.stanford.edu/class/msande311/arrow-debreu.pdf)
+- Hildenbrand Mertens 1972 [Upper Hemi-Continuity of the Equilibrium-Set Correspondence for Pure Exchange Economies](https://www.jstor.org/stable/1909724?seq=1#metadata_info_tab_contents)
 - [Fast-Converging Tatonnement Algorithms for One-Time and Ongoing Market Problems ](https://cs.nyu.edu/cole/papers/CF2008.pdf)
 - [Limits of compact decorated graphs](https://arxiv.org/abs/1010.5155)
 - [Limits of dense graph sequences](https://arxiv.org/abs/math/0408173)
