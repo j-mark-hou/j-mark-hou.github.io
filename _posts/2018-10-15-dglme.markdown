@@ -1,0 +1,59 @@
+---
+layout: post
+title:  "Graph limits and market equilibrium"
+date:   2018-10-16 20:00:00 -0400
+categories: statistics, economics
+---
+
+- the modern economic landscape is increasingly dominated by a few major companies built around some large private markets
+	- e.g. :
+		- Amazon / Alibaba for e-commerce
+		- Apple / Google for apps
+		- Uber / Lyft / DiDi for transportation
+		- Google / Facebook / Microsoft / Amazon for ads
+	- as a result, there's been some interest (from e.g. these institutions) on characterizing the equilibrium behavior of large markets
+- some relevant strands of work:
+	1. probably the crowning achievement of classical economic theory was providing formal foundations for market equilibrium
+		- this classical work seems to have least partially been motivated by a desire to provide some sort of 'scientific' justification for capitalism (this was the 50s, after all) 
+		- thus, focus on abstract markets, intuitively corresponding to national-level economies
+		- focused on characterizing existence / uniqueness / welfare properites of equilibria 
+		- based on fixed-point arguments, so not that useful for actually finding equilibria
+	2. starting in the early 2000s, algorithmic game theorists have begun devising algorithms for / characterizing the complexity of computing these equilibria.
+		- for some reasonable models of markets, complexity is polynomial (and sometimes even quite fast
+		- but given the scale of the markets of interest described above, even writing down the entire market is a challenge
+	3. there's also been some recent-ish work in math / stats on characterizing the limit behavior of graphs
+- I'll discuss how results from these three areas can be used to approach the problem of characterizing equilibrium behavior in large markets
+
+
+### I. Classical general equilibrium
+A little bit after Nash applied fixed point theory to 
+
+
+
+### II. Algorithms for computing equilibrium
+
+### III. Graph Limits
+
+
+fisher market and equilibrium
+- uniqueness?
+- uhc?
+
+regular graph limits
+- 
+
+graph limits
+- decorated graphs
+- cut metric
+- continuity in cut metric and convergence
+- parameter testing in the simple case
+
+walrasian market as 
+
+
+### References
+- [Fast-Converging Tatonnement Algorithms for One-Time and Ongoing Market Problems ](https://cs.nyu.edu/cole/papers/CF2008.pdf)
+- [Limits of compact decorated graphs](https://arxiv.org/abs/1010.5155)
+- [Limits of dense graph sequences](https://arxiv.org/abs/math/0408173)
+- [Graph limits and parameter testing](https://www.microsoft.com/en-us/research/uploads/prod/2016/11/Graph-Limits-and-Parameter-Testing.pdf)
+
