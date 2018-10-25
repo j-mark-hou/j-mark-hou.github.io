@@ -133,12 +133,34 @@ Some further work (Borgs et. al. 2007) put a norm on this graphon space (in fact
 	\end{equation}
 	$$
 	where $$G'' \cong G$$ refers to $$G''$$ being some re-labeling of the vertex set of $$G$$ to match the vertex set of $$G'$$
-	- this definition can be generalized to graphons, but let's just stop here
+	- this definition can be generalized to graphons by doing something in the same spirit as above, but let's just stop here and use $$\delta_{\square}$$ to refer to this generalized graphon metric
 - this cut-distance ends up being the right metric for graphon space, and the paper proves these results:
 	- graph convergence as defined in Lovasz Szegedy 2004 is equivalent to convergence in $$\delta_{\square}$$
+	- graphon space is the completion of the space of all graphs under $$\delta_{\square}$$
 	- graphon space with the $$\delta_{\square}$$-metric is compact (once you collapse graphons into equivalence classes with $$\delta_{\square}=0$$)
+	- with high probability, sampling a sufficiently large subgraph of some graph produces a sub-graph that is close in $$\delta_{\square}$$ to the original graph
+- these results mean that questions about sampling and convergence of functions of graphs can be rephrased in terms of continuity of functionals on graphon space
+	- this is cool
 
-#### II.1. Parameter testing 
+
+#### II.1. Parameter testing and continuity
+ok, so how do we 
+- so it turns out that this idea of computing some parameters of large graph by subsampling the large graph and computing the parameter on the subsampled graph and hoping that these are close has a name: **parameter testing**
+- the Borgs et. al. 2007 paper gives some very useful results for parameter testing (Theorem 6.1) in terms of continuity in $$\delta_{\square}$$
+	- results are only for simple graphs, as opposed to the previous stuff which applied also to weighted graphs
+	- the parameter $$f(G)$$ is some bounded real value
+- the theorem states that these are equivalent (plus some other things we dont' care about):
+	- (a) $$f$$ is testable
+	- (d) $$f$$ can be extended to some $$\tilde{f}$$ defined on graphon space continuous in $$\delta_{\square}$$
+	-  $$f$$ can be extended to some function $$\tilde{f}$$ on the corresponding graphon space that is continuous in the $$\delta_{\square}$$
+	- (e.1-e.3):
+		- $$\forall \epsilon, \enspace \exists \epsilon'$$ such that for any two graphs $$G, G'$$ on the same node set with $$d_{\square}(G,G')<\epsilon'$$, we have $$\lvert f(G)-f(G')\rvert<\epsilon$$
+		- $$f(G[m])$$ converges as $$m\rightarrow\infty$$, where $$G[m]$$ represents the graph obtained by duplicating each vertex of $$G$$ $$m$$ times and adding in all the corresponding edges
+		- $$f(G)-f(G')\rightarrow 0$$ as the number of vertices in $$G$$ goes to $$\infty$$, where $$G'$$ is just $$G$$ except with an additional disconnected node
+- so, testability is equivalent to continuity in $$\delta_{\square}$$, which is equivalent to some easy-ish-to-check conditions
+
+
+
 
 
 ### REST
