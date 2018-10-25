@@ -13,33 +13,170 @@ categories: statistics, economics
 		- Google / Facebook / Microsoft / Amazon for ads
 	- as a result, there's been some interest (from e.g. these institutions) on characterizing the equilibrium behavior of large markets
 - some relevant strands of work:
-	1. probably the crowning achievement of classical economic theory was providing formal foundations for market equilibrium
+	- probably the crowning achievement of classical economic theory was providing formal foundations for market equilibrium
 		- this classical work seems to have least partially been motivated by a desire to provide some sort of 'scientific' justification for capitalism (this was the 50s, after all) 
 		- thus, focus on abstract markets, intuitively corresponding to national-level economies
 		- focused on characterizing existence / uniqueness / welfare properites of equilibria 
 		- based on fixed-point arguments, so not that useful for actually finding equilibria
-	2. starting in the early 2000s, algorithmic game theorists have begun devising algorithms for / characterizing the complexity of computing these equilibria.
+	- starting in the early 2000s, algorithmic game theorists have begun devising algorithms for / characterizing the complexity of computing these equilibria.
 		- for some reasonable models of markets, complexity is polynomial (and sometimes even quite fast
 		- but given the scale of the markets of interest described above, even writing down the entire market is a challenge
-	3. there's also been some recent-ish work in math / stats on characterizing the limit behavior of graphs
-- I'll discuss how results from these three areas can be used to tackle the problem of characterizing equilibrium behavior in large markets
+	- there's also been some recent-ish work in math / stats on characterizing the limit behavior of various properties of dense graphs
+		- some conditions under which some property of a dense graph will converge as the graph gets big
+		- markets are basically just bipartite graphs with the two types of nodes being consumers and products
+- so, it feels like you should be able to do something like this:
+	1. sample some sub-market from your big market
+	2. compute equilibrium on this sub-market, and compute some smooth statistic of the equilibrium price vector
+	3. the equilibrium static computed on the sampled market should converge towards the statistic on the true market as you sample larger and larger sub-markets
+
+I'll discuss some intuition / very limited results for whether this approach makes sense
 
 
 
 
-### I. Classical general equilibrium
-A little bit after Nash applied fixed point techniques to game theory, Arrow and Debreu did something similar for general equilibrium.  This result applies to quite general markets with general utility functions and production functions, but we'll be extremely concrete here and focus on a simple market with no production / no endowments / specific utilities (CES Fisher market):
+### I. Simple example
+We'll be extremely concrete here and focus on a fairly trivial market with no production / only monetary endowments / specific utilities (Fisher market with Cobb-Douglas utilites).
+#### I.0. Setup
 - goods $$j = 1,...,J$$
 	- each good has total supply $$y_j$$
+	- in addition, let $$\tau_j\in\{0,1\}$$ denote binary 'type' of a good
 - consumers $$i = 1,...,I$$
 	- each consumer has total budget $$B_i$$ to spend on stuff
-	- utility function $$u_i(x_i) = \sum_j\left(\alpha_{ij}x_{ij}^{\frac{\sigma-1}{\sigma}} \right)^{\frac{\sigma}{\sigma-1}}$$ with $$\sum_j \alpha_{ij}=1$$ and $$\sigma>1$$
-		- a little calculus gives us that, given prices $$p = (p_1,...,p_J)$$, the optimal amount of each item to buy is $$x^*_{ij}(p) = \frac{(\alpha_{ij}/p_j)^\sigma}{\sum_j (\alpha_{ij}/p_j)^\sigma p_j} B_i$$
-		- for $$\sigma<\infty$$, the marginal utility of each good decreases as $$x_{ij}$$ increases
-		- for $$\sigma\rightarrow\infty$$ gives us approximately linear utility, with constant marginal utility
+	- utility function 
+	$$
+	\begin{equation}\displaystyle
+	u_i(x_i) = \prod_jx_{ij}^{\alpha_{ij}}, \quad\alpha_{ij}=1
+	\label{cbutil}
+	\tag{1}
+	\end{equation}$$
+		- a little calculus gives us that, given prices $$p = (p_1,...,p_J)$$, the optimal amount of each item to buy is 
+		$$
+		\begin{equation}\displaystyle
+		x^*_{ij}(p) = \frac{\alpha_{ij}B_i}{p_j} 
+		\label{cbopt}
+		\tag{2}
+		\end{equation}$$
+		- thus, in particular, the total fraction of consumer $$i$$'s budget spent on good $$j$$ is just $$\alpha_{ij}$$ *independent of price*
 - an equilibrium is defined by prices $$p^*$$ such that supply and demand are equal:  $$\sum_i x^*_{ij} = y_j$$
+	- note that because the allocation of money to each product doesn't depend on price
+	- so, the market clearing price for each good $$j$$ is just 
+	$$
+	\begin{equation}\displaystyle
+	p^*_j = \left(\sum_i \alpha_{ij}B_i\right)/y_j
+	\label{cbeq}
+	\tag{3}
+	\end{equation}
+	$$ 
+	- so this market is actually trivial
+- **our aim is to figure out how much total money is spent on goods of type $$\tau_j=0$$**
+	- this can be written
+	$$
+	\begin{equation}\displaystyle
+	\sum_{j:\tau_j=0} \sum_ix^*_{ij}p^*_j = \sum_{j:\tau_j=0} \sum_i \alpha_{ij}B_i
+	\label{rev0}
+	\tag{4}
+	\end{equation}
+	$$
 
-Does this seem reasonable?
+#### I.1. Equilibrium existence and computation
+Equilibrium existence:
+- this is trivial because we have closed form expression for the equilibrium price vector
+- fairly general cases, classical general equilibrium results give us existences (see Arrow Debreu 1954)
+
+Equilibrium computation:
+- again, trivial because we have closed form solution
+- more generally, various polynomial time algorithms for doing so:
+	- tatonnement-style algorithm in exchange economies where elasticiity of substitution is not too high and consumers are endowed with money (e.g. Cole Fleischer 2008)
+	- convex optimization based algorithms in the linear case (e.g. Devanur Garg Vegh 2013)
+
+#### I.2. Sampling
+- doing the sum in \eqref{rev0} requires $$O(IJ)$$ operations
+- this might be large, in which case we'll probably want to sample
+- if e.g. $$J$$ is small, we can just subsample consumers $$i$$ and approximate the fraction of revenue flowing to goods with $$\tau_j=0$$
+	- standard LLN implies consistency
+- if both $$I$$ and $$J$$ are large, then we'll need to sample in both dimensions
+	- ... is this actually a thing that we can do?
+
+
+
+### II. Graph limits and parameter testing
+#### II.0. Graph limits
+There's some quite elegant theory on limits of dense graphs (see Lovasz Szegedy 2004):
+- a graph's adjacency matrix is just a symmetric function from $$[0,1]\times[0,1]\mapsto \{0,1\}$$ 
+	- disccretize the interval $$[0,1]$$ into $$|V|$$ intervals corresponding to the vertices of the graph
+	- set the function's value to 1 on a rectangle IFF there's an edge between the two vertices corresponding to the two intervals defining the rectangle
+- so instead of talking about graphs, just talk about these functions instead
+- it turns out that the right limit objects for these piecewise-constant symmetric functions $$[0,1]\times[0,1]\mapsto \{0,1\}$$ are symmetric functions on $$[0,1]\times[0,1]\mapsto [0,1]$$, which are called **'graphons'**
+	- the range $$[0,1]$$ can be interpreted a probability distribution on $$\{0,1\}$$
+
+Some further work (Borgs et. al. 2007) put a norm on this graphon space (in fact, a more general space, as they allow for edge and node weights)
+- namely, the  **cut-distance**  $$\delta_{\square}$$:
+	- for two simple graphs $$G', G''$$ on the exact same (labeled) vertex set:
+	$$
+	\begin{equation}\displaystyle
+	d_{\square}(G'', G') := \max_{S,T\subset V} \frac{1}{\lvert V\rvert^2}\left\lvert e_{G''}(S,T) - e_{G'}(S,T) \right\rvert
+	\label{cutdistance0}
+	\tag{5}
+	\end{equation}
+	$$
+		- $$e_{G}(S,T)$$ is the number of edges between vertex sets $$S$$ and $$T$$
+		- $$d_{\square}$$ is the maximum difference in edge density between any two vertex sub-sets
+		- intuitively, this amounts to saying that $$G''$$ and $$G'$$ are 'macroscopically similar', in that no matter which edge subsets you look at, the number of edges is roughly the same
+			- macroscopic because everything is scaled down by the square of the number of vertices, so that it's possible for e.g. individual vertices to have dramatically different degrees so long as the total differences are $$o(n^2)$$
+		- note that this distance only makes sense for dense graphs, since otherwise this metric would be uniformly zero as the graphs got large
+	- for two simple graphs $$G, G'$$ with the same number of vertices, just find the best way to relabel the vertices of $$G$$ to match the vertex set of $$G'$$, and then use the above definition:
+	$$
+	\begin{equation}\displaystyle
+	\delta_{\square}(G, G') :=  \min_{G''\cong G} d_{\square}(G'', G')
+	\label{cutdistance1}
+	\tag{6}
+	\end{equation}
+	$$
+	where $$G'' \cong G$$ refers to $$G''$$ being some re-labeling of the vertex set of $$G$$ to match the vertex set of $$G'$$
+	- this definition can be generalized to graphons, but let's just stop here
+- this cut-distance ends up being the right metric for graphon space, and the paper proves these results:
+	- graph convergence as defined in Lovasz Szegedy 2004 is equivalent to convergence in $$\delta_{\square}$$
+	- graphon space with the $$\delta_{\square}$$-metric is compact (once you collapse graphons into equivalence classes with $$\delta_{\square}=0$$)
+
+#### II.1. Parameter testing 
+
+
+### REST
+
+
+
+#### I.3. subsampling
+- simple graph, 0/1 edges
+- budget of a consumer node is its degree
+	- so, 1 dollar for each of the goods its attached to
+- 
+
+discus why these choices
+- can't do constant budget for everyone
+	- suppose there's one guy with a single attachment, type0
+	- he gets a second attachment, type1
+	- this is an O(1/n) change in the revenue share of type1, but an O(1/n2) change in the cut norm
+	- so this is infeasible
+- why normalize by n2 instead of fraction of total budget:
+	- if first all consumers have degree1, each attached to a single type0 nodes, and then everyone gets another attachment to type1 nodes,
+	- this is small in the rectangle norm (there's an n^2 in denom)
+	- but half of the mass is now on type1 whereas previously it was type0
+	- so we have to rule this out => send both cases to 0
+
+
+### extensions
+- what if it was general normed space instead of just [0,1] for the function?
+- compact-decorated
+
+
+### other stuff
+
+
+
+
+
+#### I.2. Does this seem reasonable?
+- products are totally separable, in that the fraction of money spent on that product doesn't depend on any prices, so equilibrium computation is trivial
 - there is a fixed set of goods and no production, and consumer are allocated money but no goods
 	- seems reasonably represenative of some market over a short period of time
 - this is a static market (in that there's no explicit concept of time)
@@ -65,34 +202,27 @@ This is nice, but:
 
 
 
-
-
 ### II. Computing equilibrium
+There's been increasing work on computing equilibria of games.  t
 
-### III. Graph Limits
 
 
-fisher market and equilibrium
-- uniqueness?
-- uhc?
+### III. Graph limits
 
-regular graph limits
+
+
+### IV. Graph limits and market equilibrium
+consider a case where 
 - 
 
-graph limits
-- decorated graphs
-- cut metric
-- continuity in cut metric and convergence
-- parameter testing in the simple case
-
-walrasian market as 
 
 
 ### References
 - Arrow Debreu 1954: [ Existence of an Equilibrium for a Competitive Economy](https://web.stanford.edu/class/msande311/arrow-debreu.pdf)
 - Hildenbrand Mertens 1972 [Upper Hemi-Continuity of the Equilibrium-Set Correspondence for Pure Exchange Economies](https://www.jstor.org/stable/1909724?seq=1#metadata_info_tab_contents)
-- [Fast-Converging Tatonnement Algorithms for One-Time and Ongoing Market Problems ](https://cs.nyu.edu/cole/papers/CF2008.pdf)
+- Cole Fleischer 2008: [Fast-Converging Tatonnement Algorithms for One-Time and Ongoing Market Problems](https://cs.nyu.edu/cole/papers/CF2008.pdf)
+- Devanur Garg Vegh 2013 [A Rational Convex Program for Linear Arrow-Debreu Markets](https://arxiv.org/abs/1307.8037)
 - [Limits of compact decorated graphs](https://arxiv.org/abs/1010.5155)
-- [Limits of dense graph sequences](https://arxiv.org/abs/math/0408173)
+- Lovasz Szegedy 2004 [Limits of dense graph sequences](https://arxiv.org/abs/math/0408173)
 - [Graph limits and parameter testing](https://www.microsoft.com/en-us/research/uploads/prod/2016/11/Graph-Limits-and-Parameter-Testing.pdf)
-
+- Borgs et. al. 2007 [Convergent Sequences of Dense Graphs I: Subgraph Frequencies, Metric Properties and Testing](https://arxiv.org/abs/math/0702004)
