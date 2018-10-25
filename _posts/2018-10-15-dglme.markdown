@@ -23,7 +23,7 @@ categories: statistics, economics
 		- but given the scale of the markets of interest described above, even writing down the entire market is a challenge
 	- there's also been some recent-ish work in math / stats on characterizing the limit behavior of various properties of dense graphs
 		- some conditions under which some property of a dense graph will converge as the graph gets big
-		- markets are basically just bipartite graphs with the two types of nodes being consumers and products
+		- markets are basically just bipartite graphs with the two types of vertices being consumers and products
 - so, it feels like you should be able to do something like this:
 	1. sample some sub-market from your big market
 	2. compute equilibrium on this sub-market, and compute some smooth statistic of the equilibrium price vector
@@ -45,10 +45,11 @@ We'll be extremely concrete here and focus on a fairly trivial market with no pr
 	- utility function 
 	$$
 	\begin{equation}\displaystyle
-	u_i(x_i) = \prod_jx_{ij}^{\alpha_{ij}}, \quad\alpha_{ij}=1
+	u_i(x_i) = \sum_j\alpha_{ij}\log(x_{ij}), \quad\alpha_{ij}=1
 	\label{cbutil}
 	\tag{1}
-	\end{equation}$$
+	\end{equation}
+	$$
 		- a little calculus gives us that, given prices $$p = (p_1,...,p_J)$$, the optimal amount of each item to buy is 
 		$$
 		\begin{equation}\displaystyle
@@ -103,13 +104,13 @@ Equilibrium computation:
 #### II.0. Graph limits
 There's some quite elegant theory on limits of dense graphs (see Lovasz Szegedy 2004):
 - a graph's adjacency matrix is just a symmetric function from $$[0,1]\times[0,1]\mapsto \{0,1\}$$ 
-	- disccretize the interval $$[0,1]$$ into $$|V|$$ intervals corresponding to the vertices of the graph
+	- discretize the interval $$[0,1]$$ into $$\lvert V\rvert$$ intervals corresponding to the vertices of the graph
 	- set the function's value to 1 on a rectangle IFF there's an edge between the two vertices corresponding to the two intervals defining the rectangle
 - so instead of talking about graphs, just talk about these functions instead
 - it turns out that the right limit objects for these piecewise-constant symmetric functions $$[0,1]\times[0,1]\mapsto \{0,1\}$$ are symmetric functions on $$[0,1]\times[0,1]\mapsto [0,1]$$, which are called **'graphons'**
 	- the range $$[0,1]$$ can be interpreted a probability distribution on $$\{0,1\}$$
 
-Some further work (Borgs et. al. 2007) put a norm on this graphon space (in fact, a more general space, as they allow for edge and node weights)
+Some further work (Borgs et. al. 2007) put a norm on this graphon space (in fact, a more general space, as they allow for edge and vertex weights)
 - namely, the  **cut-distance**  $$\delta_{\square}$$:
 	- for two simple graphs $$G', G''$$ on the exact same (labeled) vertex set:
 	$$
@@ -144,22 +145,75 @@ Some further work (Borgs et. al. 2007) put a norm on this graphon space (in fact
 
 
 #### II.1. Parameter testing and continuity
-ok, so how do we 
 - so it turns out that this idea of computing some parameters of large graph by subsampling the large graph and computing the parameter on the subsampled graph and hoping that these are close has a name: **parameter testing**
 - the Borgs et. al. 2007 paper gives some very useful results for parameter testing (Theorem 6.1) in terms of continuity in $$\delta_{\square}$$
 	- results are only for simple graphs, as opposed to the previous stuff which applied also to weighted graphs
 	- the parameter $$f(G)$$ is some bounded real value
 - the theorem states that these are equivalent (plus some other things we dont' care about):
 	- (a) $$f$$ is testable
-	- (d) $$f$$ can be extended to some $$\tilde{f}$$ defined on graphon space continuous in $$\delta_{\square}$$
-	-  $$f$$ can be extended to some function $$\tilde{f}$$ on the corresponding graphon space that is continuous in the $$\delta_{\square}$$
+	- (d) $$f$$ can be extended to some $$\tilde{f}$$ on graphon space that is continuous in $$\delta_{\square}$$
 	- (e.1-e.3):
-		- $$\forall \epsilon, \enspace \exists \epsilon'$$ such that for any two graphs $$G, G'$$ on the same node set with $$d_{\square}(G,G')<\epsilon'$$, we have $$\lvert f(G)-f(G')\rvert<\epsilon$$
-		- $$f(G[m])$$ converges as $$m\rightarrow\infty$$, where $$G[m]$$ represents the graph obtained by duplicating each vertex of $$G$$ $$m$$ times and adding in all the corresponding edges
-		- $$f(G)-f(G')\rightarrow 0$$ as the number of vertices in $$G$$ goes to $$\infty$$, where $$G'$$ is just $$G$$ except with an additional disconnected node
+		- (e.1) $$\forall \epsilon, \enspace \exists \epsilon'$$ such that for any two graphs $$G, G'$$ on the same vertex set with $$d_{\square}(G,G')<\epsilon'$$, we have $$\lvert f(G)-f(G')\rvert<\epsilon$$
+		- (e.2) $$f(G[m])$$ converges as $$m\rightarrow\infty$$, where $$G[m]$$ represents the graph obtained by duplicating each vertex of $$G$$ $$m$$ times and adding in all the corresponding edges
+		- (e.3) $$\lvert f(G')-f(G)\rvert\rightarrow 0$$ as the number of vertices in $$G$$ goes to $$\infty$$, where $$G'$$ is just $$G$$ except with an additional disconnected vertex
 - so, testability is equivalent to continuity in $$\delta_{\square}$$, which is equivalent to some easy-ish-to-check conditions
 
 
+### III. Testability of market equilibria
+#### III.1. Simple example
+Let's now apply this nice theory of parameter testing to the simple we started off with.  This basically amounts to showing that the type-0 revenue in \eqref{rev0} is a a testable graph parameter.
+
+So let's first represent the simple example above as a graph:
+- consumers $$i$$ and goods $$j$$ are vertices
+- a consumer has vertex-weight corresponding to its budget $$B_i$$
+- a good has vertex-weight corresponding to its supply $$y_j$$
+- the edge weight between consumer $$i$$ and good $$j$$ is consumer $$i$$'s valuation of good $$j$$, which is $$\alpha_{ij}$$
+
+As the above theory applies only to simple graphs, we'll make some more constraints:
+- in order to get rid of weights for vertices coresponding to goods:
+	- let all goods have the same supply, and normalize by total supply $$y_j=1/J$$
+- in order to get rid of edge weights:
+	- make preference binary so that a consumer $$i$$ either likes or doesn't like a good $$j$$
+	- for the goods $$j$$ that consumer $$i$$ prefers, uniformly set $$\alpha_{ij}=1/\mathrm{deg}_i$$ where $$\mathrm{deg}_i$$ is number of goods $$i$$ likes
+- in order to get rid of weights on vertices corresponding to consumers:
+	- set the budget of consumer $$i$$ to $$\mathrm{deg}_i$$, so that people who like more stuff have more money to spend
+	- it might be more natural to give consumers equal budget, but we'll discuss later why this is problematic
+
+This then gives us a simple graph $$G$$ with:
+- $$I+J$$ total vertices
+- consumer-vertex $$i$$ is attached to good-vertex $$j$$ IFF consumer $$i$$ likes good $$j$$
+- there are no connections between consumer-vertices, and similarly for good-vertices
+
+So, now \eqref{rev0} can be written 
+$$\sum_{j:\tau_j=0} \sum_i \frac{1}{\mathrm{deg}_i}\mathrm{deg}_i = \sum_{j:\tau_j=0} \mathrm{deg}_j$$, which is just the total number of all edges attached to goods of type $$\tau_j=0$$.  We'll also normalize this by the square of the total number of vertices to construct a graph parameter:
+$$
+\begin{equation}\displaystyle
+R_0(G) = \frac{1}{(I+J)^2}\sum_{j:\tau_j=0} \mathrm{deg}_j
+\tag{7}
+\label{revparam}
+\end{equation}
+$$
+
+So we need to show that $$R_0(G)$$ is testable, which we can do via conditions (e.1-e.3):
+- (e.1):
+	- $$R_0(G)$$ as we've constructed it is literally just the edge density between the sets of good-vertices $$j$$ with $$\tau_j=0$$ and the entire vertex set
+	- the condition that \eqref{cutdistance0} be small just says that the edge density between any two subsets of vertices is small
+	- which guarantees that the difference in $$R_0$$ between the two graphs will also be small
+- (e.2):
+	- so we replicate each vertex $$M$$ times 
+	- there are now $$M$$ copies of each good-vertex $$j$$ and similarly for each consumer-vertex $$i$$
+	- let $$(j,m)$$ represent a good in this new $$G[M]$$ graph, and similarly $$(i,m)$$ for consumers
+	- so we have 
+	$$
+	R_0(G[M]) = \frac{1}{((I+J)M)^2}\sum_{(j,m):\tau_j=0} \mathrm{deg}_{(j,m)}
+	= \frac{1}{M^2(I+J)^2}M\sum_{j:\tau_j=0} M\mathrm{deg}_{j} = R_0(G)
+	$$
+	- so duplicating the vertices $$M$$ times actually keeps $$R_0$$ the same
+- (e.3):
+	- adding an isolated vertex to $$G$$ will only impact $$R_0(G)$$ by changing $$\frac{1}{(I+J)^2}$$ to $$\frac{1}{(I+J+1)^2}$$
+	- this change is clearly negligible as $$(I+J)\rightarrow\infty$$
+
+Thus, it follows that $$R_0(G)$$ is testable, and thus it makes sense to approximate this in a large graph by just taking some $$G'$$ subsampled from $$G$$ and then using $$R_0(G')$$ to approximate $$R_0(G)$$
 
 
 
@@ -169,7 +223,7 @@ ok, so how do we
 
 #### I.3. subsampling
 - simple graph, 0/1 edges
-- budget of a consumer node is its degree
+- budget of a consumer vertex is its degree
 	- so, 1 dollar for each of the goods its attached to
 - 
 
@@ -180,7 +234,7 @@ discus why these choices
 	- this is an O(1/n) change in the revenue share of type1, but an O(1/n2) change in the cut norm
 	- so this is infeasible
 - why normalize by n2 instead of fraction of total budget:
-	- if first all consumers have degree1, each attached to a single type0 nodes, and then everyone gets another attachment to type1 nodes,
+	- if first all consumers have degree1, each attached to a single type0 vertices, and then everyone gets another attachment to type1 vertices,
 	- this is small in the rectangle norm (there's an n^2 in denom)
 	- but half of the mass is now on type1 whereas previously it was type0
 	- so we have to rule this out => send both cases to 0
