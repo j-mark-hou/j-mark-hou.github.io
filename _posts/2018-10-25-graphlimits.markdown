@@ -11,23 +11,24 @@ categories: math, statistics, economics
 		- Apple / Google for apps
 		- Uber / Lyft / DiDi for transportation
 		- Google / Facebook / Microsoft / Amazon for ads
-	- as a result, there's been some interest (from e.g. these institutions) on characterizing the equilibrium behavior of large markets
+	- so there's been some interest (from e.g. these institutions) on characterizing the equilibrium behavior of large markets
 - some relevant strands of work:
-	- probably the crowning achievement of classical economic theory was providing formal foundations for market equilibrium
+	- providing formal foundations for market equilibrium was probably the crowning achievement of classical economic theory
 		- this classical work seems to have least partially been motivated by a desire to provide some sort of 'scientific' justification for capitalism (this was the 50s, after all) 
-		- thus, focus on abstract markets, intuitively corresponding to national-level economies
+			- thus, focus on abstract markets, intuitively corresponding to nation-level economies
 		- focused on characterizing existence / uniqueness / welfare properites of equilibria 
-		- based on fixed-point arguments, so not that useful for actually finding equilibria
-	- starting in the early 2000s, algorithmic game theorists have begun devising algorithms for / characterizing the complexity of computing these equilibria.
-		- for some reasonable models of markets, complexity is polynomial (and sometimes even quite fast
-		- but given the scale of the markets of interest described above, even writing down the entire market is a challenge
-	- there's also been some recent-ish work in math / stats on characterizing the limit behavior of various properties of graphs
+		- based on fixed-point arguments
+			- not that useful for actually finding equilibria
+	- more recently, algorithmic game theorists have devised various algorithms for computing equilibria of certain markets
+		- for some reasonable models of markets, complexity is polynomial in market size (and sometimes even quite fast)
+		- but given the scale of the markets of interest described above, often even writing down the entire market is a challenge
+	- there's also been some recent work in graph theory on defining / characterizing the limits of graphs
 		- some conditions under which some property of a graph will converge as the graph gets big
-		- markets are basically just bipartite graphs with the two types of vertices (consumers and products)
+		- markets are basically just bipartite graphs where vertices are consumers and goods
 - so, it feels like you should be able to do something like this:
-	1. sample some sub-market from your big market
+	1. sample some not-too-small sub-market from your big market
 	2. compute equilibrium on this sub-market
-	3. equilibrium on the sampled market should converge towards equilibrium on the market as you sample larger and larger sub-markets
+	3. equilibrium on the sampled market be similar-ish to equilibrium on the whole market
 
 I'll walk through a very simple example to provide some intuition on when this process could work, and then discuss how much foundational work remains to be done.
 
@@ -109,7 +110,7 @@ There's some quite elegant theory on limits of dense graphs (see Lovasz Szegedy 
 	- the range $$[0,1]$$ can be interpreted a probability distribution on $$\{0,1\}$$
 
 Some further work (Borgs et. al. 2007) put a norm on this graphon space (in fact, a more general space, as they allow for edge and vertex weights)
-- namely, the  **cut-distance**  $$\delta_{\square}$$:
+- namely, the  **cut-metric**  $$\delta_{\square}$$:
 	- for two simple graphs $$G', G''$$ on the exact same (labeled) vertex set:
 	$$
 	\begin{equation}\displaystyle
@@ -133,7 +134,7 @@ Some further work (Borgs et. al. 2007) put a norm on this graphon space (in fact
 	$$
 	where $$G'' \cong G$$ refers to $$G''$$ being some re-labeling of the vertex set of $$G$$ to match the vertex set of $$G'$$
 	- this definition can be generalized to graphons by doing something in the same spirit as above, but let's just stop here and use $$\delta_{\square}$$ to refer to this generalized graphon metric
-- this cut-distance ends up being the right metric for graphon space, and the paper proves these results:
+- this cut-metric ends up being the right metric for graphon space, and the paper proves these results:
 	- graph convergence as defined in Lovasz Szegedy 2004 is equivalent to convergence in $$\delta_{\square}$$
 	- graphon space is the completion of the space of all graphs under $$\delta_{\square}$$
 	- graphon space with the $$\delta_{\square}$$-metric is compact (once you collapse graphons into equivalence classes with $$\delta_{\square}=0$$)
@@ -228,7 +229,7 @@ We made some further assumptions to the simple example in order to apply this pa
 		- so, as $$n$$ gets big, the $$d_{\square}$$ between these two different graphs goes to 0
 		- thus, no matter how small $$\epsilon$$ gets, you can find two graphs $$G, G'$$ that differ only in $$\epsilon$$ in the $$d_\square$$ metric, but nevertheless differ significantly in fraction-of-revenue-going-to-type-0-goods
 		- so (e.1) fails
-	- the crux of the issue here is that the cut-distance scales everything down by by the square of the number of vertices
+	- the crux of the issue here is that the cut-metric scales everything down by by the square of the number of vertices
 		- so, whatever graph parameter must also be similarly scaled in order to be continuous in $$d_\square$$
 2. assigning each consumer $$i$$ a budget proportional to the number of items they like
 	- more naturally, we might want to just give every consumer $$i$$ an equal share of the total budget
@@ -270,14 +271,14 @@ We had to basically trivialize the entire problem in order to be able to get the
 			- it feels like something like this probably should hold
 	- we might consider adopting the standard approach used to prove continuity of equilibrium in the fixed-number-of-consumers-and-goods case where we prove that each consumer's optimal consumption is continuous in the cut-metric via berge theorem
 		- this is probably hard, because if we allow variable numbers of products, the mapping from prices to optimal consumption is a function-valued functional, which seemslike a pretty difficult thing to work with
-		- we'll probably need to rely on some results like (e.1-e.3), which except for real-valued-function valued functionals, rather than to bounded real-valued functionals
-			- also seems hard
+		- we'll probably need to rely on some results like (e.1-e.3), except for real-valued-function valued functionals, rather than to bounded real-valued functionals
+		- this feels quite hard
 
 ### IV. So...
 - this is pretty cool stuff
 - it certainly *feels* like some fairly general results should hold here
 - but a lot more groundwork needs to be laid before this graph limit theory stuff can be used to produce general results about equilibrium behavior of large markets
-- but even this sort of intuitive motivation might usefully point at some reasonable approaches to approximation equilibrium parameters of large markets
+- even so, existing theory can still provide intuitive motivation for some reasonable approaches to approximation equilibria of large markets
 
 
 
@@ -289,4 +290,4 @@ We had to basically trivialize the entire problem in order to be able to get the
 - Lovasz Szegedy 2004 [Limits of dense graph sequences](https://arxiv.org/abs/math/0408173)
 - Lovasz Szegedy 2010 [Limits of compact decorated graphs](https://arxiv.org/abs/1010.5155)
 - Borgs et. al. 2007 [Convergent Sequences of Dense Graphs I: Subgraph Frequencies, Metric Properties and Testing](https://arxiv.org/abs/math/0702004)
-	- more compact version of this: [Graph limits and parameter testing](https://www.microsoft.com/en-us/research/uploads/prod/2016/11/Graph-Limits-and-Parameter-Testing.pdf)
+	- condensed version: [Graph limits and parameter testing](https://www.microsoft.com/en-us/research/uploads/prod/2016/11/Graph-Limits-and-Parameter-Testing.pdf)
