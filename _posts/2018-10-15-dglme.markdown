@@ -216,6 +216,40 @@ So we need to show that $$R_0(G)$$ is testable, which we can do via conditions (
 Thus, it follows that $$R_0(G)$$ is testable, and thus it makes sense to approximate this in a large graph by just taking some $$G'$$ subsampled from $$G$$ and then using $$R_0(G')$$ to approximate $$R_0(G)$$
 
 
+#### III.2. Other related parameters that are not testable
+We made some further assumptions to the simple example in order to apply this parameter testing stuff above.  Two of them are maybe a bit unnatural, and they were made because somehow more natural assumptions would have resulted in graph parameters that were not testable:
+1. normalizing revenue by $$\frac{1}{(I+J)^2}$$ in \eqref{revparam}
+	- this is kind of like a 'revenue going to type-0 goods, as a fraction of hypothetical total revenue supportable by the market'
+	- more naturally, we might be interested in something like 'fraction of total revenue going to type-0 goods, as a fraction of total spending'
+		- unfortunately, this parameter is not testable
+	- consider this example:
+		- every consumer $$i$$ only likes exactly one good, and that good is of type-0
+		- so, all revenue goes to type-0 goods
+		- now, add in an edge between every consumer $$i$$ and some randomly chosen good of type-1
+		- this change makes it so that each consumer now spends half of their income on type-0 goods, so now only .5 fraction of total revenue goes to type-0 goods
+		- however, adding in an edge between every consumer $$i$$ and some type-1 only involves adding $$O(\lvert V \rvert)$$ edges
+		- so, as $$n$$ gets big, the $$d_{\square}$$ between these two different graphs goes to 0
+		- thus, no matter how small $$\epsilon$$ gets, you can find two graphs $$G, G'$$ that differ only in $$\epsilon$$ in the $$d_\square$$ metric, but nevertheless differ significantly in fraction-of-revenue-going-to-type-0-goods
+		- so (e.1) fails
+	- the crux of the issue here is that the cut-distance scales everything down by by the square of the number of vertices
+		- so, whatever graph parameter must also be similarly scaled in order to be continuous in $$d_\square$$
+2. assigning each consumer $$i$$ a budget proportional to the number of items they like
+	- more naturally, we might want to just give every consumer $$i$$ an equal share of the total budget
+		- in this case, we wouldn't want to normalize revenue by $$1/(I+J)^2$$ because that would be... uniformly 0 as the graph gets large
+		- it turns out this is also not testable
+	- consider this example (very similar to previous example):
+		- $$1/3$$ of the consumers only like a single item, and that item is type-0
+		- now, for every consumers in this $$1/3$$, add a single edge to some item of type-1
+		- this only entails adding $$O(I)$$ edges, which gets small as the market gets big
+		- however, this $$1/3$$ of consumers will shift half of their spending from type-0 to type-1 goods
+		- thus, this moves the revenue share of type-1 goods by $$1/6$$, which doesn't get small as the market gets big
+		- so (e.1) fails
+	- note that, while the last example relied on the graph being sparse, it's possible in this example for the graph to be dense
+		- so long as the remaining $$2/3$$ of consumers have $$\Theta(J+I)$$ edges on average, the resulting graph is dense
+	- the key here is that a contingent of consumers with very few edges control a large share of the total revenue makes, so that small changes to the edge count can significantly change the revenue distribution.
+
+
+
 
 ### REST
 
