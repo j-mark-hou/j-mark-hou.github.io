@@ -28,7 +28,7 @@ categories: math, statistics, economics
 - so, it feels like you should be able to do something like this:
 	1. sample some not-too-small sub-market from your big market
 	2. compute equilibrium on this sub-market
-	3. equilibrium on the sampled market be similar-ish to equilibrium on the whole market
+	3. equilibrium on the sampled market should be similar-ish to equilibrium on the whole market
 
 I'll walk through a very simple example to provide some intuition on when this process could work, and then discuss how much foundational work remains to be done.
 
@@ -101,7 +101,7 @@ Equilibrium computation:
 
 ### II. Graph limits and parameter testing
 #### II.0. Graph limits
-There's some quite elegant theory on limits of dense graphs (see Lovasz Szegedy 2004):
+There's some quite elegant theory on limits of graph sequences (see Lovasz Szegedy 2004):
 - a graph's adjacency matrix is just a symmetric function from $$[0,1]\times[0,1]\mapsto \{0,1\}$$ 
 	- discretize the interval $$[0,1]$$ into $$\lvert V\rvert$$ intervals corresponding to the vertices of the graph
 	- set the function's value to 1 on a rectangle IFF there's an edge between the two vertices corresponding to the two intervals defining the rectangle
