@@ -1,11 +1,11 @@
 ---
 layout: post
 title:  "Graph limits and market equilibrium"
-date:   2018-10-16 20:00:00 -0400
-categories: statistics, economics
+date:   2018-10-25 20:00:00 -0400
+categories: math, statistics, economics
 ---
 
-- the modern economic landscape is increasingly dominated by a few major companies built around some large private markets
+- current economic landscape is heavily dominated by a few major companies built around large private markets
 	- e.g. :
 		- Amazon / Alibaba for e-commerce
 		- Apple / Google for apps
@@ -21,17 +21,15 @@ categories: statistics, economics
 	- starting in the early 2000s, algorithmic game theorists have begun devising algorithms for / characterizing the complexity of computing these equilibria.
 		- for some reasonable models of markets, complexity is polynomial (and sometimes even quite fast
 		- but given the scale of the markets of interest described above, even writing down the entire market is a challenge
-	- there's also been some recent-ish work in math / stats on characterizing the limit behavior of various properties of dense graphs
-		- some conditions under which some property of a dense graph will converge as the graph gets big
-		- markets are basically just bipartite graphs with the two types of vertices being consumers and products
+	- there's also been some recent-ish work in math / stats on characterizing the limit behavior of various properties of graphs
+		- some conditions under which some property of a graph will converge as the graph gets big
+		- markets are basically just bipartite graphs with the two types of vertices (consumers and products)
 - so, it feels like you should be able to do something like this:
 	1. sample some sub-market from your big market
-	2. compute equilibrium on this sub-market, and compute some smooth statistic of the equilibrium price vector
-	3. the equilibrium static computed on the sampled market should converge towards the statistic on the true market as you sample larger and larger sub-markets
+	2. compute equilibrium on this sub-market
+	3. equilibrium on the sampled market should converge towards equilibrium on the market as you sample larger and larger sub-markets
 
-I'll discuss some intuition / very limited results for whether this approach makes sense
-
-
+I'll walk through a very simple example to provide some intuition on when this process could work, and then discuss how much foundational work remains to be done.
 
 
 ### I. Simple example
@@ -69,7 +67,7 @@ We'll be extremely concrete here and focus on a fairly trivial market with no pr
 	\end{equation}
 	$$ 
 	- so this market is actually trivial
-- **our aim is to figure out how much total money is spent on goods of type $$\tau_j=0$$**
+- **our aim is to figure out how much total money is spent on goods of type $$\tau_j=0$$ in equilibrium**
 	- this can be written
 	$$
 	\begin{equation}\displaystyle
