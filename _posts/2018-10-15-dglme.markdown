@@ -148,7 +148,7 @@ Some further work (Borgs et. al. 2007) put a norm on this graphon space (in fact
 - so it turns out that this idea of computing some parameters of large graph by subsampling the large graph and computing the parameter on the subsampled graph and hoping that these are close has a name: **parameter testing**
 - the Borgs et. al. 2007 paper gives some very useful results for parameter testing (Theorem 6.1) in terms of continuity in $$\delta_{\square}$$
 	- results are only for simple graphs, as opposed to the previous stuff which applied also to weighted graphs
-	- the parameter $$f(G)$$ is some bounded real value
+	- the parameter $$f(G)$$ must be real and bounded
 - the theorem states that these are equivalent (plus some other things we dont' care about):
 	- (a) $$f$$ is testable
 	- (d) $$f$$ can be extended to some $$\tilde{f}$$ on graphon space that is continuous in $$\delta_{\square}$$
@@ -159,8 +159,8 @@ Some further work (Borgs et. al. 2007) put a norm on this graphon space (in fact
 - so, testability is equivalent to continuity in $$\delta_{\square}$$, which is equivalent to some easy-ish-to-check conditions
 
 
-### III. Testability of market equilibria
-#### III.1. Simple example
+### III. Testability of market equilibrium: simple example
+#### III.1. One specification that is testable
 Let's now apply this nice theory of parameter testing to the simple we started off with.  This basically amounts to showing that the type-0 revenue in \eqref{rev0} is a a testable graph parameter.
 
 So let's first represent the simple example above as a graph:
@@ -215,9 +215,8 @@ So we need to show that $$R_0(G)$$ is testable, which we can do via conditions (
 
 Thus, it follows that $$R_0(G)$$ is testable, and thus it makes sense to approximate this in a large graph by just taking some $$G'$$ subsampled from $$G$$ and then using $$R_0(G')$$ to approximate $$R_0(G)$$
 
-
-#### III.2. Other related parameters that are not testable
-We made some further assumptions to the simple example in order to apply this parameter testing stuff above.  Two of them are maybe a bit unnatural, and they were made because somehow more natural assumptions would have resulted in graph parameters that were not testable:
+#### III.2. Other specifications that are not testable
+We made some further assumptions to the simple example in order to apply this parameter testing stuff above.  Two of them are maybe a bit unnatural, and they were made because somehow more natural assumptions would have resulted in graph parameters that weren't testable:
 1. normalizing revenue by $$\frac{1}{(I+J)^2}$$ in \eqref{revparam}
 	- this is kind of like a 'revenue going to type-0 goods, as a fraction of hypothetical total revenue supportable by the market'
 	- more naturally, we might be interested in something like 'fraction of total revenue going to type-0 goods, as a fraction of total spending'
@@ -246,93 +245,50 @@ We made some further assumptions to the simple example in order to apply this pa
 		- so (e.1) fails
 	- note that, while the last example relied on the graph being sparse, it's possible in this example for the graph to be dense
 		- so long as the remaining $$2/3$$ of consumers have $$\Theta(J+I)$$ edges on average, the resulting graph is dense
-	- the key here is that a contingent of consumers with very few edges control a large share of the total revenue makes, so that small changes to the edge count can significantly change the revenue distribution.
+	- the key here is that a contingent of consumers with very few edges control a non-vanishing share of the total revenue, so that small changes to the edge count can significantly change the revenue distribution
 
+#### III.3. Can we say anything more general?
+We had to basically trivialize the entire problem in order to be able to get the results we did above.  How can we relax these assumptions?
+- consumer preferences $$\alpha_{ij}$$ are binary
+	- more generally, we'd prefer to have this be a real number
+		- unfortunately, this would make the corresponding graph have edge-weights
+		- presumably Borgs et. al. 2007 would have characterized parameter testing for weighted graphs rather than just simple graphs if it was easy
+		- so probably it's not
+	- or even more generally, we might want to have each edge be some function from some compact function space
+		- Lovasz Szegedy 2010 defines graph limits for 'compact decorated graphs' where edges can be associated with elements in a general compact space
+		- but I don't think there's even an equivalent to the cut-metric defined for this stuff yet?
+		- so surely quite a long way to go here before we can do anything
+- consumer budgets are proportional to how many items they like
+	- it seems like having an upper bound on how budget proportional to how many products a consumer likes will be necessary
+	- but maybe we'll want each consumer to have their own separate budget-to-degree ratio
+	- this would involve adding vertex-weights to the graph
+	- again, probably nontrivial
+- cobb-douglas utilities
+	- the specification in \eqref{cbutil} trivializes the problem by making spending independent of price
+	- this allowed us to turn a question of market equilibrium into a question about edge density in a graph
+	- more generally, we would actually have to worry about the equilibrium prices and how they change with small changes in the market
+		- we might have to do this on a case-by-case-basis for specific utilities
+		- or maybe there's some way to tie this price-sensitivity-wrt-cut-metric to something like the elasticity of substitution in the utility functions
+			- it feels like something like this probably should hold
+	- we might consider adopting the standard approach used to prove continuity of equilibrium in the fixed-number-of-consumers-and-goods case where we prove that each consumer's optimal consumption is continuous in the cut-metric via berge theorem
+		- this is probably hard, because if we allow variable numbers of products, the mapping from prices to optimal consumption is a function-valued functional, which seemslike a pretty difficult thing to work with
+		- we'll probably need to rely on some results like (e.1-e.3), which except for real-valued-function valued functionals, rather than to bounded real-valued functionals
+			- also seems hard
 
+### IV. So...
+- this is pretty cool stuff
+- it certainly *feels* like some fairly general results should hold here
+- but a lot more groundwork needs to be laid before this graph limit theory stuff can be used to produce general results about equilibrium behavior of large markets
+- but even this sort of intuitive motivation might usefully point at some reasonable approaches to approximation equilibrium parameters of large markets
 
-
-### REST
-
-
-
-#### I.3. subsampling
-- simple graph, 0/1 edges
-- budget of a consumer vertex is its degree
-	- so, 1 dollar for each of the goods its attached to
-- 
-
-discus why these choices
-- can't do constant budget for everyone
-	- suppose there's one guy with a single attachment, type0
-	- he gets a second attachment, type1
-	- this is an O(1/n) change in the revenue share of type1, but an O(1/n2) change in the cut norm
-	- so this is infeasible
-- why normalize by n2 instead of fraction of total budget:
-	- if first all consumers have degree1, each attached to a single type0 vertices, and then everyone gets another attachment to type1 vertices,
-	- this is small in the rectangle norm (there's an n^2 in denom)
-	- but half of the mass is now on type1 whereas previously it was type0
-	- so we have to rule this out => send both cases to 0
-
-
-### extensions
-- what if it was general normed space instead of just [0,1] for the function?
-- compact-decorated
-
-
-### other stuff
-
-
-
-
-
-#### I.2. Does this seem reasonable?
-- products are totally separable, in that the fraction of money spent on that product doesn't depend on any prices, so equilibrium computation is trivial
-- there is a fixed set of goods and no production, and consumer are allocated money but no goods
-	- seems reasonably represenative of some market over a short period of time
-- this is a static market (in that there's no explicit concept of time)
-	- again, reasonable for considering markets over short periods of time
-- consumers have preferences over goods but not money, and thus spend all of their money on goods
-	- this is less reasonable of an assumption, as you would expect consumers to... not spend all of their money?
-	- not hard to relax this assumption
-- quantities are infinitely divisible
-	- this is an assumption made for analytical tractability, and doesn't match so well with reality
-	- need to justify this on a case-by-case basis
-
-Classical results give us:
-- existence of equilibrium via Kakutani fixed point theorem
-	- in this particular case, equilibrium is unique
-	- so Brouwer would also work here
-- upper hemicontinuity of the equilibrium price in the model parameters (e.g. $$\alpha, \sigma, B$$ and even $$I$$)
-	- this is a consequence of Berge theorem for upper hemicontinuity of argmax
-	- in this particular case it's just continuity, as the argmax consumption bundle $$x^*_i(p)$$ is unique
-
-This is nice, but:
-- these results don't tell us how to actually compute the equillibrium prices $$p^*$$
-- these results don't tell us what hapens when both $$I,J$$ go to $$\infty$$
-
-
-
-### II. Computing equilibrium
-There's been increasing work on computing equilibria of games.  t
-
-
-
-### III. Graph limits
-
-
-
-### IV. Graph limits and market equilibrium
-consider a case where 
-- 
 
 
 
 ### References
 - Arrow Debreu 1954: [ Existence of an Equilibrium for a Competitive Economy](https://web.stanford.edu/class/msande311/arrow-debreu.pdf)
-- Hildenbrand Mertens 1972 [Upper Hemi-Continuity of the Equilibrium-Set Correspondence for Pure Exchange Economies](https://www.jstor.org/stable/1909724?seq=1#metadata_info_tab_contents)
 - Cole Fleischer 2008: [Fast-Converging Tatonnement Algorithms for One-Time and Ongoing Market Problems](https://cs.nyu.edu/cole/papers/CF2008.pdf)
 - Devanur Garg Vegh 2013 [A Rational Convex Program for Linear Arrow-Debreu Markets](https://arxiv.org/abs/1307.8037)
-- [Limits of compact decorated graphs](https://arxiv.org/abs/1010.5155)
 - Lovasz Szegedy 2004 [Limits of dense graph sequences](https://arxiv.org/abs/math/0408173)
-- [Graph limits and parameter testing](https://www.microsoft.com/en-us/research/uploads/prod/2016/11/Graph-Limits-and-Parameter-Testing.pdf)
+- Lovasz Szegedy 2010 [Limits of compact decorated graphs](https://arxiv.org/abs/1010.5155)
 - Borgs et. al. 2007 [Convergent Sequences of Dense Graphs I: Subgraph Frequencies, Metric Properties and Testing](https://arxiv.org/abs/math/0702004)
+	- more compact version of this: [Graph limits and parameter testing](https://www.microsoft.com/en-us/research/uploads/prod/2016/11/Graph-Limits-and-Parameter-Testing.pdf)
