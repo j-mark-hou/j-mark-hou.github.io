@@ -22,7 +22,7 @@ categories: math, statistics, economics
 	- more recently, algorithmic game theorists have devised various algorithms for computing equilibria of certain markets
 		- for some reasonable models of markets, complexity is polynomial in market size (and sometimes even quite fast)
 		- but given the scale of the markets of interest described above, often even writing down the entire market is a challenge
-	- there's also been some recent work in graph theory on defining / characterizing the limits of graphs
+	- there's also been some recent work in graph theory on defining / characterizing the limits of graph sequences
 		- some conditions under which some property of a graph will converge as the graph gets big
 		- markets are basically just bipartite graphs where vertices are consumers and goods
 - so, it feels like you should be able to do something like this:
