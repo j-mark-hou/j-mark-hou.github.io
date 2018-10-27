@@ -247,7 +247,7 @@ We made some further assumptions to the simple example in order to apply this pa
 	- the key here is that a contingent of consumers with very few edges control a non-vanishing share of the total revenue, so that small changes to the edge count can significantly change the revenue distribution
 
 #### III.3. Can we say anything more general?
-We had to basically trivialize the entire problem in order to be able to get the results we did above.  How can we relax these assumptions?
+We had to trivialize the problem setting to get the testability results.  How can we relax these assumptions?
 - consumer preferences $$\alpha_{ij}$$ are binary
 	- more generally, we'd prefer to have this be a real number
 		- unfortunately, this would make the corresponding graph have edge-weights
