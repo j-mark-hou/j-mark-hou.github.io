@@ -229,7 +229,7 @@ We made some further assumptions to the simple example in order to apply this pa
 		- so, as $$n$$ gets big, the $$d_{\square}$$ between these two different graphs goes to 0
 		- thus, no matter how small $$\epsilon$$ gets, you can find two graphs $$G, G'$$ that differ only in $$\epsilon$$ in the $$d_\square$$ metric, but nevertheless differ significantly in fraction-of-revenue-going-to-type-0-goods
 		- so (e.1) fails
-	- the crux of the issue here is that the cut-metric scales everything down by by the square of the number of vertices
+	- the crux of the issue here is that the cut-metric scales everything down by the square of the number of vertices
 		- so, whatever graph parameter must also be similarly scaled in order to be continuous in $$d_\square$$
 2. assigning each consumer $$i$$ a budget proportional to the number of items they like
 	- more naturally, we might want to just give every consumer $$i$$ an equal share of the total budget
