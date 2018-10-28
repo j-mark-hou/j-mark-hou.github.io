@@ -269,7 +269,7 @@ Now, some points:
 		- however, there's fairly large variance around the average marginal effects around there mean, which is due to the trained stage2 lgb model being kind of very jagged (see cell 16 for the partial dependency plot) relative to the truth (which is linear and thus smooth)
 		- compared to ignoring endogeneity, this approach is cleary better, which is unsurprising because endogeneity is a pretty severe issue in this simulation
 		- compared to 2SLS it's cleary worse, which is unsurprising because 2SLS makes very restrictive linearity assumptions that happen to be correct here
-- **stage2 model is EXTREMELY sensitive to small imperfections the stage1 quantiles**
+- **stage2 model is EXTREMELY sensitive to small imperfections in the stage1 quantiles**
 	- in section 2, we do NonparametrIV as above, except that instead of predicting the conditional quantiles, we directly use the true ones
 		- the training data is the same 16000 observations
 	- section 2.c.IV. has the analogue of section 1 above, except with true quantiles rather than predicted
