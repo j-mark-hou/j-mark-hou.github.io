@@ -19,7 +19,7 @@ categories: math, statistics, economics
 		- focused on characterizing existence / uniqueness / welfare properites of equilibria 
 		- based on fixed-point arguments
 			- not that useful for actually finding equilibria
-	- more recently, algorithmic game theorists have devised various algorithms for computing equilibria of certain markets
+	- more recently, developments in algorithmic game theory for computing equilibria of certain markets
 		- for some reasonable models of markets, complexity is polynomial in market size (and sometimes even quite fast)
 		- but given the scale of the markets of interest described above, often even writing down the entire market is a challenge
 	- there's also been some recent work in graph theory on defining / characterizing the limits of graph sequences
@@ -68,20 +68,19 @@ We'll be extremely concrete here and focus on a fairly trivial market with no pr
 	\end{equation}
 	$$ 
 	- so this market is actually trivial
-- **our aim is to figure out how much total money is spent on goods of type $$\tau_j=0$$ in equilibrium**
-	- this can be written
-	$$
-	\begin{equation}\displaystyle
-	\sum_{j:\tau_j=0} \sum_ix^*_{ij}p^*_j = \sum_{j:\tau_j=0} \sum_i \alpha_{ij}B_i
-	\label{rev0}
-	\tag{4}
-	\end{equation}
-	$$
+- **our aim is to figure out how much total money is spent on goods of type $$\tau_j=0$$ in equilibrium**, which can be written
+$$
+\begin{equation}\displaystyle
+\sum_{j:\tau_j=0} \sum_ix^*_{ij}p^*_j = \sum_{j:\tau_j=0} \sum_i \alpha_{ij}B_i
+\label{rev0}
+\tag{4}
+\end{equation}
+$$
 
 #### I.1. Equilibrium existence and computation
 Equilibrium existence:
 - this is trivial because we have closed form expression for the equilibrium price vector
-- fairly general cases, classical general equilibrium results give us existences (see Arrow Debreu 1954)
+- in more general cases, classical general equilibrium results give us existences under some fairly general assumptions (see Arrow Debreu 1954)
 
 Equilibrium computation:
 - again, trivial because we have closed form solution
@@ -109,7 +108,7 @@ There's some quite elegant theory on limits of graph sequences (see Lovasz Szege
 - it turns out that the right limit objects for these piecewise-constant symmetric functions $$[0,1]\times[0,1]\mapsto \{0,1\}$$ are symmetric functions on $$[0,1]\times[0,1]\mapsto [0,1]$$, which are called **'graphons'**
 	- the range $$[0,1]$$ can be interpreted a probability distribution on $$\{0,1\}$$
 
-Some further work (Borgs et. al. 2007) put a norm on this graphon space (in fact, a more general space, as they allow for edge and vertex weights)
+Some further work (Borgs et. al. 2007) put a metric on this graphon space (in fact, a more general space, as they allow for edge and vertex weights)
 - namely, the  **cut-metric**  $$\delta_{\square}$$:
 	- for two simple graphs $$G', G''$$ on the exact same (labeled) vertex set:
 	$$
@@ -184,7 +183,7 @@ This then gives us a simple graph $$G$$ with:
 - there are no connections between consumer-vertices, and similarly for good-vertices
 
 So, now \eqref{rev0} can be written 
-$$\sum_{j:\tau_j=0} \sum_i \frac{1}{\mathrm{deg}_i}\mathrm{deg}_i = \sum_{j:\tau_j=0} \mathrm{deg}_j$$, which is just the total number of all edges attached to goods of type $$\tau_j=0$$.  We'll also normalize this by the square of the total number of vertices to construct a graph parameter:
+$$\sum_{j:\tau_j=0} \sum_{i:\alpha_{ij}=1} \frac{1}{\mathrm{deg}_i}\mathrm{deg}_i = \sum_{j:\tau_j=0} \mathrm{deg}_j$$, which is just the total number of all edges attached to goods of type $$\tau_j=0$$.  We'll also normalize this by the square of the total number of vertices to construct a graph parameter:
 $$
 \begin{equation}\displaystyle
 R_0(G) = \frac{1}{(I+J)^2}\sum_{j:\tau_j=0} \mathrm{deg}_j
