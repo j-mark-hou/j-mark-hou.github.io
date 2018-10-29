@@ -257,8 +257,8 @@ We had to trivialize the problem setting to get the testability results.  How ca
 		- but I don't think there's even an equivalent to the cut-metric defined for this stuff yet?
 		- so surely quite a long way to go here before we can do anything
 - consumer budgets are proportional to how many items they like
-	- it seems like having an upper bound on how budget proportional to how many products a consumer likes will be necessary
-	- but maybe we'll want each consumer to have their own separate budget-to-degree ratio
+	- it seems like having budget proportional to how many products a consumer likes will be necessary
+	- but maybe we'll want each consumer to have their own separate proportionality constant
 	- this would involve adding vertex-weights to the graph
 	- again, probably nontrivial
 - cobb-douglas utilities
