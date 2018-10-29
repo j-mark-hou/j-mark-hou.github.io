@@ -159,7 +159,7 @@ Some further work (Borgs et. al. 2007) put a metric on this graphon space (in fa
 
 ### III. Testability of market equilibrium: simple example
 #### III.1. One specification that is testable
-Let's now apply this nice theory of parameter testing to the simple we started off with.  This basically amounts to showing that the type-0 revenue in \eqref{rev0} is a a testable graph parameter.
+Let's now apply this nice theory of parameter testing to the simple setting above.  This basically amounts to showing that the type-0 revenue in \eqref{rev0} is a testable graph parameter.
 
 So let's first represent the simple example above as a graph:
 - consumers $$i$$ and goods $$j$$ are vertices
@@ -169,10 +169,10 @@ So let's first represent the simple example above as a graph:
 
 As the above theory applies only to simple graphs, we'll make some more constraints:
 - in order to get rid of weights for vertices coresponding to goods:
-	- let all goods have the same supply, and normalize by total supply $$y_j=1/J$$
+	- normalize the supply of each good to $$y_j=1$$ (this is WLOG)
 - in order to get rid of edge weights:
 	- make preference binary so that a consumer $$i$$ either likes or doesn't like a good $$j$$
-	- for the goods $$j$$ that consumer $$i$$ prefers, uniformly set $$\alpha_{ij}=1/\mathrm{deg}_i$$ where $$\mathrm{deg}_i$$ is number of goods $$i$$ likes
+	- for the goods $$j$$ that consumer $$i$$ likes, uniformly set $$\alpha_{ij}=1/\mathrm{deg}_i$$ where $$\mathrm{deg}_i$$ is number of goods $$i$$ likes
 - in order to get rid of weights on vertices corresponding to consumers:
 	- set the budget of consumer $$i$$ to $$\mathrm{deg}_i$$, so that people who like more stuff have more money to spend
 	- it might be more natural to give consumers equal budget, but we'll discuss later why this is problematic
@@ -198,7 +198,7 @@ So we need to show that $$R_0(G)$$ is testable, which we can do via conditions (
 	- the condition that \eqref{cutdistance0} be small just says that the edge density between any two subsets of vertices is small
 	- which guarantees that the difference in $$R_0$$ between the two graphs will also be small
 - (e.2):
-	- so we replicate each vertex $$M$$ times 
+	- so we duplicate each vertex $$M$$ times 
 	- there are now $$M$$ copies of each good-vertex $$j$$ and similarly for each consumer-vertex $$i$$
 	- let $$(j,m)$$ represent a good in this new $$G[M]$$ graph, and similarly $$(i,m)$$ for consumers
 	- so we have 
@@ -222,10 +222,10 @@ We made some further assumptions to the simple example in order to apply this pa
 	- consider this example:
 		- every consumer $$i$$ only likes exactly one good, and that good is of type-0
 		- so, all revenue goes to type-0 goods
-		- now, add in an edge between every consumer $$i$$ and some randomly chosen good of type-1
+		- now, add in a single edge between every consumer $$i$$ and any arbitrary good of type-1
 		- this change makes it so that each consumer now spends half of their income on type-0 goods, so now only .5 fraction of total revenue goes to type-0 goods
-		- however, adding in an edge between every consumer $$i$$ and some type-1 only involves adding $$O(\lvert V \rvert)$$ edges
-		- so, as $$n$$ gets big, the $$d_{\square}$$ between these two different graphs goes to 0
+		- however, adding in an edge between every consumer $$i$$ and some type-1 only involves adding $$O(I)$$ edges
+		- so, for $$I$$, the $$d_{\square}$$ between these two different graphs goes to 0
 		- thus, no matter how small $$\epsilon$$ gets, you can find two graphs $$G, G'$$ that differ only in $$\epsilon$$ in the $$d_\square$$ metric, but nevertheless differ significantly in fraction-of-revenue-going-to-type-0-goods
 		- so (e.1) fails
 	- the crux of the issue here is that the cut-metric scales everything down by the square of the number of vertices
@@ -234,7 +234,7 @@ We made some further assumptions to the simple example in order to apply this pa
 	- more naturally, we might want to just give every consumer $$i$$ an equal share of the total budget
 		- in this case, we wouldn't want to normalize revenue by $$1/(I+J)^2$$ because that would be... uniformly 0 as the graph gets large
 		- it turns out this is also not testable
-	- consider this example (very similar to previous example):
+	- consider this example (similar to previous example):
 		- $$1/3$$ of the consumers only like a single item, and that item is type-0
 		- now, for every consumers in this $$1/3$$, add a single edge to some item of type-1
 		- this only entails adding $$O(I)$$ edges, which gets small as the market gets big
@@ -243,7 +243,7 @@ We made some further assumptions to the simple example in order to apply this pa
 		- so (e.1) fails
 	- note that, while the last example relied on the graph being sparse, it's possible in this example for the graph to be dense
 		- so long as the remaining $$2/3$$ of consumers have $$\Theta(J+I)$$ edges on average, the resulting graph is dense
-	- the key here is that a contingent of consumers with very few edges control a non-vanishing share of the total revenue, so that small changes to the edge count can significantly change the revenue distribution
+	- the key here is that a contingent of consumers with low edge count controls a non-vanishing share of the total revenue, so that small changes to the edge count can significantly change the revenue distribution
 
 #### III.3. Can we say anything more general?
 We had to trivialize the problem setting to get the testability results.  How can we relax these assumptions?
