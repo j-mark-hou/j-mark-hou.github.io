@@ -20,7 +20,7 @@ baseurl: "" # the subpath of your site, e.g. /blog
 url: "" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: 
 github_username: j-mark-hou
-linkedin_username: j-mark-hou-8ba79555
+linkedin_username: jmarkhou
 permalink: /:title/
 include: ["_pages"]
 
