@@ -9,8 +9,8 @@ The recent surge of interest in blockchain has resulted in my having many conver
 
 Here, I'll:
 - Make two straightforward-but-underappreciated points:
-    - Decentralized institutions probably won't be that intelligent.
-    - Institutions that do stuff we like will probably need some help staying alive.
+    - Decentralized institutions won't be that intelligent.
+    - Institutions that do stuff we want will need help staying alive.
 - Discuss implications for what sorts of decentralized institutions we might expect to build.
 
 
@@ -49,3 +49,30 @@ Examples:
         - USA can be debilitated by e.g. compromising the integrity of powerful elected officials.
 - It feels like decentralization could help address these weaknesses.
 - Blockchain relevant as a way to potentialy build highly decentralized institutions.
+
+
+### 1. Two straightforward-but-underappreciated points
+#### 1.a. Decentralized institutions won't be that smart
+- Smart institution = very good at adapting to general environments.
+    - Smart = a person.
+    - Dumb = everything else.
+- Currently, only way to implement a smart institution is to centralize.
+    - Give power to a single person / a few people (e.g. CEO).
+    - Try to constrain their incentives to match some aggregate ones (e.g. via options grants).
+    - Let them optimize.
+- Examples of institutions that are less smart:
+    - Representative democracy is designed to be slow at everything.
+    - Capitalism is pretty slow at solving certain problems (e.g. resource overconsumption)
+    - DNA as well.
+- So, decentralized institutions probably won't be that smart
+    - Artificial general intelligence doesn't seem to be anywhere close to being as smart as people for general optimization purposes.
+    - So we're kinda left with trying to implement some way to leverage human intelligence.
+    - There's a lot of suggestive evidence that this is hard, e.g.:
+        - Observing that every non-centralized human institution we're aware of is slow.
+        - Results in social choice theory on how preference aggregation is necessarily fraught with political conflict (which typically causes slowness).
+- Fundamental problem: the *only existing model of intelligence is centralized*:
+    - Not-entirely-unbelievable story: the subjective feeling of being a self-conscious human (call this thing 'ego') is just DNA's way of implementing a smart institution that helps DNA self-propagate:
+        - DNA creats this 'ego' to be the centralized controlling party.
+        - DNA then aligns the ego's incentives with its own via coarse emotional controls.
+        - DNA provides the ego with computational resources to do whatever optimization it wants.
+    - So, connection between intelligence and centralization feels pretty fundamental.
