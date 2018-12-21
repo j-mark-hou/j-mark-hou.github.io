@@ -1,9 +1,11 @@
 ---
 layout: post
-title:  "Institutions, decentralization, blockchain"
+title:  "Building decentalized institution"
 date:   2018-12-18 20:00:00 -0400
-categories: soft
+categories: philosophy
 ---
+
+When I was younger, I wanted to be a 'quantitative philosopher of institutions' (whatever that means).  As a result, there were a few years where I spent very large fraction of my time thinking about institutions.
 
 The recent surge of interest in blockchain has resulted in my having many conversations with people about building decentralized institution.  
 
@@ -30,12 +32,12 @@ Examples:
     - USA is an institution that implements some vaguely defined set of 'Amercan interests', survives by appropriating a portion of the economic activity occurring under its purview to fund defense.
 - Some 'natural' institutions where it's unclear if they implement anything (beyond survival):
     - Capitalism is an institution that survives by incentivizing people to engage in market transaction / wage war on other people who don't engage in market transactions.
-    - DNA is an institution that survives by instantiating organisms and then incentivizing them to produce more DNA.
+    - DNA is an institution that survives by instantiating organisms and then incentivizing them to create more organisms.
     - Laws of physics is an institution that survives by... I don't know, it just kind of does?
 
 #### 0.b. Decentralization
 - Our primary ways of building institutions have been pretty centralized, e.g.:
-    - Dogs (and other animals) appear to have an 'ego' that functions as a centralized control center for the entire animal.
+    - Dogs (and other animals) appear to have an 'ego' that functions as a centralized control center for the organism.
     - Google (and other companies) concentrates a lot of power in its executives, though many functions are decentralized throughout the organization.
     - USA (and other democracies) concentrates a lot of power in some elected officials, though typically for short periods of time and subject to popular approval.
 - This centralization leads to some weaknesses when it comes to Implementation and Survival:
@@ -56,42 +58,54 @@ Examples:
         - Laws of physics define local rules of interation, which then aggregate up to global phenomenon.
             - Compare with a video game world, where global phenomena are centrally defined in code, with local behavior following as a consequence.
 - But these decentralized institutions are all major forces of nature, rather than human implementations.
-- We don't really know how to build decentralized institutions.
-    - Blockchain is hype precisely because it offers a glimmer of hope on this front.
+- That is, we don't know how to build decentralized institutions.
+    - Blockchain is hype because it offers a glimmer of hope on this front.
 
 
 
 ### 1. Decentralized institutions won't be that intelligent
-Let's define 'intelligence' as the ability to solve ex-ante un-specified problems.
-- Currently, only humans and certain other biological life-forms are 'intelligent' in this sense.
-- Fundamental problem: our *only existing model of intelligence is centralized*:
-    - The 'ego' (:= subjective feeling of being a unified single entity) is just DNA's way of implementing a smart institution that helps DNA self-propagate:
+Let's define 'intelligence' as the ability to quickly optimize against unforseen circumstances.
+- Suggestive empirical evidence that higher centralization seems to correlate with higher intelligence:
+    - Single engineer overseeing a project can just push product changes immediately, whereas if there are many stakeholders, then lots of communication necessary, need to worry about internal politics, etc.
+    - Startups are often able to out-maneuver larger corporations.
+        - Less communication overhead and better aligned incentives => startup act more like a single centralized entity.
+    - Corporations in general are fairly centralized, as corporate survival requires optimizing against changing market environments.
+    - Democratic forms of government are by design quite slow to adapt to novel circumstances, whereas autocracies have the potential to move quickly (e.g. US vs China on energy policy).
+    - Military organizations are all highly centralized, as winning wars requires being very adaptive.
+- Fundamental problem: it seems like **our only model of intelligence is centralized**, and it's something like this:
+    1. Centralize control with a single entity.
+    2. Constrain this entity's preferences to be somewhat correlated with desired ones.
+    3. Give the entity some resources to do various kinds of optimization.
+- Some examples of this model:
+    - Corporations:
+        - Investors centralize control with CEO.
+        - Investors align CEO incentives with investors' via conditional stock grants.
+        - CEO goes ahead and leverages company resources to do optimization.
+        - (This is a very stylized description, but the intuition is there)
+    - The 'ego' (:= subjective feeling of being a single unified entity) could just be DNA's way of implementing a smart institution that helps DNA survive:
         - DNA creats this 'ego' to be the centralized controlling party.
         - DNA then aligns the ego's incentives with DNA reproduction via coarse controls through pleasure / pain.
-        - DNA provides the ego with computational resources to optimize.
-        - (Unclear if this is true, but it sounds believable)
-    - Corporations bear some strong similarities:
-        - Investors centralize control with CEO.
-        - Investors align CEO incentives with investors ones via properly structure compensation plans.
-        - CEO goes ahead and does optimization.
-        - (This is a very stylized description, but the intuition is there)
+        - DNA provides builds a brain, gives ego access to do whatever with it.
+        - (This is a somewhat fanciful description, but it doesn't sound implausible)
+- As a result, intelligent institutions probably need to be built out of aggregates of people.
+    - Given some negative results on preference aggregation, this problem is theoretically hard (e.g. arrow, gibbard-sattherwaite).
+    - Impossible to construct decentralized preference aggregation rules that satisfy some basic requirements.
+    - As a result, decentralized human institutions are almost necessarily fraught with incentive conflicts.
+    - Incentive conflicts seem to make institutions less intelligent.
+- So we'll probably have to come up with a new model of intelligence...
+    - Serious artificial intelligence might be such a model
+        - This would allow us to have intelligence without the corresponding incentive issues.
+        - Incentive issues is a major reasons for conflict between decentralization and intelligence.
+    - But, seriousl AI is still quite far away (I'm not optimistic about neural networks being *that* universal of a function approximator).
+    - And all of our current methods are too rigid / brittle to stand up to concerted human intelligence.
 
-- There's also plenty of empirical evidence that more decentralized institutions tend to adapt more optimize more slowly:
 
 
-- Examples of institutions that are less smart:
-    - Representative democracy is designed to be slow at everything.
-    - Capitalism is pretty slow at solving certain problems (e.g. resource overconsumption)
-    - DNA as well.
-- So, decentralized institutions probably won't be that smart
-    - Artificial general intelligence doesn't seem to be anywhere close to being as smart as people for general optimization purposes.
-    - So we're kinda left with trying to implement some way to leverage human intelligence.
-    - There's a lot of suggestive evidence that this is hard, e.g.:
-        - Observing that every non-centralized human institution we're aware of is slow.
-        - Results in social choice theory on how preference aggregation is necessarily fraught with political conflict (which typically causes slowness).
-- Fundamental problem: the *only existing model of intelligence is centralized*:
-    - Not-entirely-unbelievable story: the subjective feeling of being a self-conscious human (call this thing 'ego') is just DNA's way of implementing a smart institution that helps DNA self-propagate:
-        - DNA creats this 'ego' to be the centralized controlling party.
-        - DNA then aligns the ego's incentives with its own via coarse emotional controls.
-        - DNA provides the ego with computational resources to do whatever optimization it wants.
-    - So, connection between intelligence and centralization feels pretty fundamental.
+
+
+
+
+
+
+
+
