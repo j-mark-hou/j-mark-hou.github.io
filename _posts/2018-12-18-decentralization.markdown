@@ -12,7 +12,7 @@ The recent surge of interest in blockchain has resulted in my having many conver
 Here, I'll:
 - Make two straightforward-but-underappreciated points:
     - Decentralized institutions won't be that intelligent.
-    - Institutions that do stuff we want will need help staying alive.
+    - Institutions that do desirable things will probably be bad at surviving.
 - Discuss implications for what sorts of decentralized institutions we might expect to build.
 
 
@@ -50,7 +50,7 @@ Examples:
         - Google can be easily shut down by e.g. a government by just removing its servers.
         - USA can be debilitated by e.g. compromising the integrity of powerful elected officials.
 - It feels like decentralization could help address these weaknesses.
-    - Certainly, many of the most ancient institutions in our world are decentralized:
+    - Certainly, many of the longest-lasting and most powerful institutions in our world are decentralized:
         - Capitalism leverages decentralized exchange of goods to converge on fair market prices.
             - Compare with central planning, which requires e.g. a literal central Walrasian auctioneer runing tatonnement.
         - DNA uses decentralized sexual reproduction to continually optimize itself for reproduction.
@@ -102,9 +102,45 @@ Let's define 'intelligence' as the ability to quickly optimize against unforseen
 
 
 
+### 2. Institutions that do desirable things will probably be bad at surviving
+- Trivially, if you want to maximize some combination of Implementation and Survival, this will result in a (weakly) lower performance on Survival than optimizing purely for that.
+    - Absent some theory telling us why this constraint should be generically non-binding.
+    - Which would be quite surprising.
+- Empirically, many examples tension between Implementation and Survival:
+    - (Note: these examples are all naive caricatures, but should serve to fix intuition.)
+    - Universities and preference for children of alumni:
+        - Desired goal of promoting intellectual meritocracy.
+        - Need money to self-propagate.
+        - Can incentivize alumni to provide funding by cultivating loyalty via looser standards for children.
+    - Political lobbying:
+        - Desired goal to limit special interest in politics.
+        - But, not really feasible to create policies without domain experts' assistance.
+        - Have to provide some incentive for domain experts to exist.
+        - Thus, allow special interests to extract some rents in exchange for providing domain expertise.
+    - Buddhism and reincarnation: 
+        - Desired goal to reducing suffering.
+        - Natural way to reduce suffering is to have fewer people.
+        - Incentivizing followers to not have children is a great way for institution to die out, so can't do that.
+        - Thus, this whole weird thing about reincarnation.
+        - Unclear if this characterization is accurate, but it doesn't seem totally insane.
+    - Capitalism and poverty:
+        - Desired goal to provide overall economic welfare.
+        - Must incentivize people to actually work to provide stuff.
+        - Thus, safety net must not be too generous.
+        - Results in some number of people being quite poor in spite of plenty of resources.
+    - Biology and pain:
+        - Desired goal of providing a pleasant life to all organism.
+        - But, in order for the DNA to survive, it must be able to motivate organisms to survive and reproduce.
+        - Thus, must cause pain if organism operates counter to these goals.
+        - Results in some number of organisms having quite painful lives.
 
-
-
+- Heart of the issue:
+    - Survival is (tautologically) a minimal condition for any institution to exist.
+    - Tendency for things that are not purely optimized for survival to not survive.
+    - Implementation of some desired behavior will probably hadicap the institution on the Self-Propagation front.
+- So, must be careful that:
+    - Institution doesn't die.
+    - Institution doesn't wiggle itself away from Implementing the desired outcome.
 
 
 
