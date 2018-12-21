@@ -48,18 +48,37 @@ Examples:
         - Google can be easily shut down by e.g. a government by just removing its servers.
         - USA can be debilitated by e.g. compromising the integrity of powerful elected officials.
 - It feels like decentralization could help address these weaknesses.
-- Blockchain relevant as a way to potentialy build highly decentralized institutions.
+    - Certainly, many of the most ancient institutions in our world are decentralized:
+        - Capitalism leverages decentralized exchange of goods to converge on fair market prices.
+            - Compare with central planning, which requires e.g. a literal central Walrasian auctioneer runing tatonnement.
+        - DNA uses decentralized sexual reproduction to continually optimize itself for reproduction.
+            - Compare with intelligent design, which requires a literal god to design animals for particular purposes.
+        - Laws of physics define local rules of interation, which then aggregate up to global phenomenon.
+            - Compare with a video game world, where global phenomena are centrally defined in code, with local behavior following as a consequence.
+- But these decentralized institutions are all major forces of nature, rather than human implementations.
+- We don't really know how to build decentralized institutions.
+    - Blockchain is hype precisely because it offers a glimmer of hope on this front.
 
 
-### 1. Two straightforward-but-underappreciated points
-#### 1.a. Decentralized institutions won't be that smart
-- Smart institution = very good at adapting to general environments.
-    - Smart = a person.
-    - Dumb = everything else.
-- Currently, only way to implement a smart institution is to centralize.
-    - Give power to a single person / a few people (e.g. CEO).
-    - Try to constrain their incentives to match some aggregate ones (e.g. via options grants).
-    - Let them optimize.
+
+### 1. Decentralized institutions won't be that intelligent
+Let's define 'intelligence' as the ability to solve ex-ante un-specified problems.
+- Currently, only humans and certain other biological life-forms are 'intelligent' in this sense.
+- Fundamental problem: our *only existing model of intelligence is centralized*:
+    - The 'ego' (:= subjective feeling of being a unified single entity) is just DNA's way of implementing a smart institution that helps DNA self-propagate:
+        - DNA creats this 'ego' to be the centralized controlling party.
+        - DNA then aligns the ego's incentives with DNA reproduction via coarse controls through pleasure / pain.
+        - DNA provides the ego with computational resources to optimize.
+        - (Unclear if this is true, but it sounds believable)
+    - Corporations bear some strong similarities:
+        - Investors centralize control with CEO.
+        - Investors align CEO incentives with investors ones via properly structure compensation plans.
+        - CEO goes ahead and does optimization.
+        - (This is a very stylized description, but the intuition is there)
+
+- There's also plenty of empirical evidence that more decentralized institutions tend to adapt more optimize more slowly:
+
+
 - Examples of institutions that are less smart:
     - Representative democracy is designed to be slow at everything.
     - Capitalism is pretty slow at solving certain problems (e.g. resource overconsumption)
