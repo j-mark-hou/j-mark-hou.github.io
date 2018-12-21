@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Building decentalized institution"
+title:  "Building decentralized institution"
 date:   2018-12-20 20:00:00 -0400
 categories: philosophy
 ---
