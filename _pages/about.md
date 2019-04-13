@@ -8,9 +8,9 @@ permalink: /about/
 
 
 
-**Current:** startup, automating / scaling data-driven decision-making for various client institutions
+**Current:** economic research at Facebook blockchain
 
-**Former:** economics / machine learning for ads / growth at Facebook / Lyft
+**Former:** economics / machine learning / engineering at Quantco / Lyft / Facebook
 
 **Education:** MIT economics PhD, Princeton math / economics, TJ
 
