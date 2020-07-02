@@ -11,7 +11,7 @@ People often try and estimate things.  For example, people at tech companies ten
 3. assume that this estimate is your best proxy for the true impact
 4. base your decisions on this estimate of the impact (e.g. move to the new website layout if the impact on conversion is sufficiently positive)
 
-As it turns out, step 3 is actually not quite correct, and your estimate is in general *not* your best proxy for the true impact.  I recently saw a presentation by [Tom Cunningham](https://sites.google.com/site/tomcunningham/home) and [Dominic Coey](https://research.fb.com/people/coey-dominic/) from Facebook Research discussing their attempts at solving this problem.  The result is straightforward (and quite cute), but is somewhat unintuitive on first glance.  This unintuitiveness also leads to some interesting organizational challenges in practice.  I'll describe these things here.
+As it turns out, step 3 is actually not quite correct, and your estimate is in general *not* your best proxy for the true impact.  I recently saw a presentation by [Tom Cunningham](https://sites.google.com/site/tomcunningham/home) and [Dominic Coey](https://research.fb.com/people/coey-dominic/) from Facebook Research discussing their attempts at solving this problem.  The intuition is straightforward but somewhat unintuitive (James-Stein), which leads to some interesting organizational challenges in practice.  I'll describe these things here.
 
 
 ### Intuition
@@ -50,6 +50,7 @@ That is, if you restrict yourself to just applying some uniform scaling to your 
 A few points:
 - The mean-zero assumption is WLOG since you can just... demean everything.
 - This is basically just attenuation bias / errors in variables.
+- This is also basically just James-Stein.
 
 We can go ahead and simulate this.  We'll assume all noise is Gaussian because that's easy, though the above result doesn't require any parametric assumptions.
 

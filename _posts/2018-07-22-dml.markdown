@@ -15,12 +15,12 @@ categories: statistics, machine learning
 - we have some score function $$\phi$$ that is zero only at the true parameter values:
 $$
 \begin{equation}
-\mathbb{E}[\phi(W, \theta_0, \eta_0)] = 0
+\mathbb{E}[\phi(X, \theta_0, \eta_0)] = 0
 \tag{1}
 \label{momentcondition}
 \end{equation}
 $$
-where data $$W$$ is generated IID from some distribution $$\mathbb{P}$$, and $$\mathbb{E}$$ denote the expectation wrt $$\mathbb{P}$$
+where data $$X$$ is generated IID from some distribution $$\mathbb{P}$$, and $$\mathbb{E}$$ denote the expectation wrt $$\mathbb{P}$$
 - for a concrete example, think about the case of a simple linear regression:
 	- $$\phi$$ would be the derivative of the least squares objective
 	- $$\theta$$ and $$\eta$$ would be the coefficients
@@ -28,8 +28,8 @@ where data $$W$$ is generated IID from some distribution $$\mathbb{P}$$, and $$\
 
 DML recommends this procedure: 
 1. use a score $$\phi$$ that satisfies a **Neyman orthogonality** condition:
-	- the directional derivitive $$\partial_{\eta}\mathbb{E}[\phi(W,\theta_0,\eta_0)][\eta-\eta_0] = 0$$ for every $$\eta$$ 
-	- where $$\partial_{\eta}f(x_0)[x-x_0] := \partial_t f(x_0+t(x-x_0)) $$ is the directional derivative
+	- the directional derivitive $$\partial_{\eta}\mathbb{E}[\phi(X,\theta_0,\eta_0)][\eta-\eta_0] = 0$$ for every $$\eta$$ 
+		- with $$\partial_{\eta}f(z_0)[z-z_0] := \partial_t f(z_0+t(z-z_0)) $$
 	- often, you can transform your $$\phi$$ so that it satisfies Neyman orthogonality
 2. do **cross-fitting**, where you split your data into a main sample and an auxiliary sample, and:
 	- use the auxiliary sample to train some fancy machine learning model to predict the nuisance parameter $$\eta$$
@@ -37,7 +37,7 @@ DML recommends this procedure:
 		- use this trained model to get $$\hat{\eta}$$
 		- then plug this into the empirical analogue of \eqref{momentcondition} and solve for $$\theta$$, so that
 		 $$
-		 \mathbb{E}_n[\phi(W, \hat{\theta}, \hat{\eta})] = 0
+		 \mathbb{E}_n[\phi(X, \hat{\theta}, \hat{\eta})] = 0
 		 $$
 		 implicitly defines $$\hat{\theta}$$ (where $$\mathbb{E}_n$$ here denotes averaging over the main sample)
 3. this $$\hat{\theta}$$ will then be $$\sqrt{n}$$-consistent for $$\theta_0$$
@@ -61,15 +61,15 @@ For sufficiently large $$n$$, $$\hat{\theta}_n$$ will be pretty close to $$\thet
 $$
 \begin{align}
 0 &= \mathbb{E}_n\phi(X, \hat{\theta}_n, \eta_0) 
-\approx \mathbb{E}_n\phi(X, \theta_0, \eta_0) + \partial_{\theta}\mathbb{E}_n[\phi(W, \theta_0, \eta_0)](\hat{\theta}_n-\theta_0) \newline
-&\Rightarrow \partial_{\theta}\mathbb{E}_n[\phi(W, \theta_0, \eta_0)] \sqrt{n} (\hat{\theta}_n-\theta_0) \approx - \sqrt{n}\mathbb{E}_n\phi(X, \theta_0, \eta_0) \newline
+\approx \mathbb{E}_n\phi(X, \theta_0, \eta_0) + \partial_{\theta}\mathbb{E}_n[\phi(X, \theta_0, \eta_0)](\hat{\theta}_n-\theta_0) \newline
+&\Rightarrow \partial_{\theta}\mathbb{E}_n[\phi(X, \theta_0, \eta_0)] \sqrt{n} (\hat{\theta}_n-\theta_0) \approx - \sqrt{n}\mathbb{E}_n\phi(X, \theta_0, \eta_0) \newline
 &\Rightarrow \sqrt{n} (\hat{\theta}_n-\theta_0) \rightarrow_d N(0, J^{-1}\Omega J^{-1\prime})
 \tag{2}
 \label{expansion0}
 \end{align}
 $$
 
-where $$J:= \partial_{\theta}\mathbb{E}[\phi(W, \theta_0, \eta_0)]$$ and $$\Omega := \mathrm{Var}\left[\phi(W, \theta_0, \eta_0)\right]$$.
+where $$J:= \partial_{\theta}\mathbb{E}[\phi(X, \theta_0, \eta_0)]$$ and $$\Omega := \mathrm{Var}\left[\phi(X, \theta_0, \eta_0)\right]$$.
 
 That is, assuming we know the true nuisance parameter $$\eta_0$$, our estimator $$\hat{\theta}_n$$ is $$\sqrt{n}$$-consistent, which is pretty nice.
 
