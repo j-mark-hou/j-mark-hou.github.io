@@ -328,4 +328,4 @@ we've operated entirely in this high-level intuition space so far, but:
     - it's also unclear whether the authors have the correct intuitions for their own methods: this stuff is all pretty handwavy, so the intuition in these papers might just be wrong
 2. also, this field is all about the data, so over-focusing on algorithms might not be that useful
 
-so, this sort of high-level algorithmic understanding probably doesn't go super far in terms of actually being able to actually being able to build this stuff in real life
+so, this sort of high-level algorithmic understanding probably doesn't go super far in terms of actually being able to build this stuff
