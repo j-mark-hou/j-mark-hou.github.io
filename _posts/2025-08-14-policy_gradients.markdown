@@ -157,7 +157,7 @@ The intuition for this formula is relatively straightforward:
 2. $$\text{clip}(w(\theta \mid x,y,t) , 1-\epsilon, 1+\epsilon)\hat{A}(x,y,t)$$ is effectively a **poor-man's trust region**
     - the clipping function just sets the value of $$w$$ to $$1+\epsilon$$ or $$1-\epsilon$$ if it exceeds these bounds
         - note that this is equivalent to dropping observations where the likelihood ratio exceeds these limits, because clipping replaces $$w(\theta)$$ with a constant so that when you take the gradient, it contributes nothing
-    - recall the the TRPO constraint in Eq.$$\eqref{TRPO_constraint}$$ basically wants this $$w(\theta \mid x,y,t)$$ to be small, i.e. for the old & new LLMs to assign equal-ish probability to the next token, on average
+    - recall the the TRPO constraint in Eq.$$\eqref{TRPO_constraint}$$ basically wants this $$w(\theta \mid x,y,t)$$ to be close to 1, i.e. for the old & new LLMs to assign equal-ish probability to the next token, on average
     - ... so dropping data (from the gradient update) where this likelihood ratio is too extreme feels like it might achieve something similar
         - I think this was a purely heuristic move, but there's been some recent work that [maybe clipping is theoretically good?](https://arxiv.org/abs/2312.12065)
 3. the minimum of these two: assume the worst about observations beyond our clipping bounds
@@ -302,7 +302,8 @@ $$
 - the advantage is the same as in GRPO: $$\hat{A}(x,y^i) = \frac{r(x,y^i) - \text{mean}\left[r(x,y^1),..., r(x,y^G)\right]}{\text{stdev}\left[r(x,y^1),..., r(x,y^G)\right]}$$
     - there was a bit of a weird mismatch in GRPO, where you had this likelihood ratio defined at the token level, but the advantage was at the sequence level
 
-Note that they normalize by the length of the output, because the raw sequence level likelihood ratio is going to be either 0-ish or infinity-ish since each output is tens of thousands of tokens, and when you aggregate up the per-token likelihood ratios things are invariably going to blow up in one direction or the other
+Note that they normalize by the length of the output, because the raw sequence level log likelihood ratio is going to be $$\pm \infty$$, as each output is up to tens of thousands of tokens, and when you aggregate up the per-token log likelihood ratios things are invariably going to blow up in one direction or the other:
+
 $$
 s(\theta \mid x,y^i) 
 = \left(\frac{\pi_{\theta}(y^i\mid x)}{\pi_{\theta'}(y^i\mid x)} 
@@ -313,7 +314,7 @@ s(\theta \mid x,y^i)
     \right)
 \right)
 $$\\
-the $$1/\mid y^i\mid$$ is thus crucial here: makes this an "average log likelihood ratio across tokens in this response", which won't be mechanically concentrated at 0 or infinity
+the $$1/\mid y^i\mid$$ is thus crucial here: makes this an "average log likelihood ratio across tokens in this response", which won't be mechanically concentrated at $$\pm \infty$$
 
 The authors were particularly motivated by difficulties of GRPO for MoE training:
 1. in mixture of experts networks, which experts get activated can vary a lot even for small parameter updates, leading to highly unstable token-level likelihood ratios => a lot of info gets dropped
