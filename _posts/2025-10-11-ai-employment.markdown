@@ -40,14 +40,14 @@ this 2025 August paper from the Stanford digital economy lab has gotten quite a 
 1. Section 4.4 of the paper has a robustness check, seemingly to address this kind of critique: "One class of explanations is that our patterns are explained by industry- or firm-level shocks correlated with sorting patterns by age and measured AI exposure. For example, one possibility is that young workers with high measured AI exposure are disproportionately likely to sort to firms heavily susceptible to interest rate increases."
 2. This is their specification:
     ![linear]({{ "/assets/images/2025-10-10-BrynjolfssonChandarChenEq41.png" | absolute_url }})
-    - specifically, the $$\beta_{f,t}$$ are intended to capture the first-time fixed effects
+    - specifically, the $$\beta_{f,t}$$ are intended to capture the firm-time fixed effects
 3. I don't think this addresses the alternative "mechanical aging out" story:
     - $$\beta_{f,t}$$ is uniform across all age buckets
-    - but I expect interest-rate-induced hiring freeze shock to disproportionatlely impact the youngest group, because:
+    - but I expect interest-rate-induced hiring freeze shock to disproportionately impact the youngest group, because:
         - 100% of the growth of this youngest group is due to hiring new people
         - for older groups, a fraction of the growth comes from the younger groups aging up
         - based on the pre-2022 growth rates, it seems like all these groups were growing at comparable rates
-        - therefore, the hiring rate for the younger cohorts are higher, and the younger group would thus be disproportinately impacted by the post-ZIRP tech hiring reduction
+        - therefore, the hiring rate for the youngest group is higher, and the youngest group would thus be disproportionately impacted by the post-ZIRP tech hiring reduction
 
 ### IV. a slightly different analysis would address this
 a modified version of the section 4.4 analysis, but explicitly model the age group population transition dynamics rather than doing an industry-time fixed effects that's identical for all age buckets
