@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "is AI actually replacing younger tech workers?"
+title:  "Is AI actually replacing younger tech workers?"
 date:   2025-10-11 00:00:00 -0700
 categories: statistics, machine learning
 ---
@@ -37,8 +37,8 @@ this 2025 August paper from the Stanford digital economy lab has gotten quite a 
 
 
 ### III. the robustness check may not be sufficient
-1. Section 4.4 of the paper has a robustness check, seemingly to address this kind of critique: "One class of explanations is that our patterns are explained by industry- or firm-level shocks correlated with sorting patterns by age and measured AI exposure. For example, one possibility is that young workers with high measured AI exposure are disproportionately likely to sort to firms heavily susceptible to interest rate increases."
-2. This is their specification:
+1. section 4.4 of the paper has a robustness check, seemingly to address this kind of critique: "One class of explanations is that our patterns are explained by industry- or firm-level shocks correlated with sorting patterns by age and measured AI exposure. For example, one possibility is that young workers with high measured AI exposure are disproportionately likely to sort to firms heavily susceptible to interest rate increases."
+2. this is their specification:
     ![linear]({{ "/assets/images/2025-10-10-BrynjolfssonChandarChenEq41.png" | absolute_url }})
     - specifically, the $$\beta_{f,t}$$ are intended to capture the firm-time fixed effects
 3. I don't think this addresses the alternative "mechanical aging out" story:
