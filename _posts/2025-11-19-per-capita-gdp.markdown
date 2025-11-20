@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "per-capita GDP is a terrible metric for AI progress"
-date:   2025-10-11 00:00:00 -0700
+date:   2025-11-18 00:00:00 -0700
 categories: statistics, machine learning
 ---
 
