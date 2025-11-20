@@ -17,7 +17,7 @@ The problem is that the graph is wrong?  GDP growth should also go to infinity i
 
 If skynet produces a bunch of nukes that then results in human extinction, the top stays nonzero (>0 nukes) but the bottom goes to 0 (0 humans) = infinity?
 
-So I've gone ahead & modified the graph from the FT article to more accurate reflect this point:
+So I've gone ahead & modified the graph from the FT article to more accurately reflect this point:
 
 ![linear]({{ "/assets/images/aigrowth_mod.jpg" | absolute_url }})
 
