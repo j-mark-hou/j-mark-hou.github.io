@@ -19,6 +19,6 @@ If skynet produces a bunch of nukes that then results in human extinction, the t
 
 So I've gone ahead & modified the graph from the FT article to more accurately reflect this point:
 
-![linear]({{ "/assets/images/aigrowth_mod.jpg" | absolute_url }})
+![linear]({{ "/assets/images/aigrowth.jpeg" | absolute_url }})
 
 In conclusion: instead of per-capita GDP growth (which actively promotes human extinction), maybe just focus on overall GDP growth (which is merely indifferent to it). 
