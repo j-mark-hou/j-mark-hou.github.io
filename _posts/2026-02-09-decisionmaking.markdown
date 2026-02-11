@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "corporate decision-making in the AI age"
+title:  "corporate decision-making and the company brain"
 date:   2026-02-11 00:00:00 -0700
 categories: AI
 ---
