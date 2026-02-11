@@ -21,6 +21,7 @@ TLDR: job expertise lives in peoples' heads today, whereas I expect it'll be ext
     - "work-traces" get stored in a database, i.e. every interaction the employee has with a spreadsheet, email client, documents, code, etc.
         - these may be e.g. literal screen recordings of every second of the work day, or something more efficient
     - the work-traces get used to train employees / AI to do these tasks
+    - (note: this has a lot of overlap with the 'context graph' discourse that's been ongoing on B2B AI Twitter recently, see e.g. [this tweet](https://x.com/JayaGup10/status/2003525933534179480) or [this follow-up](https://x.com/akoratana/status/2005303231660867619))
 
 1. so why doesn't white collar work already work this way today?
     1. it's hard to distill & store this expertise for easy future usage
@@ -31,6 +32,7 @@ TLDR: job expertise lives in peoples' heads today, whereas I expect it'll be ext
             - e.g. you need to have a mental model of the job's workflow, in order to understand where on the screen to look, and what's the crucial bit of information that's on the screen about how to do the job a bit more efficiently
             - and so, someone who doesn't already have n-1 pieces of expertise might find it quite difficult to extract the n-th piece
         - so doing this might require that every employee have someone shadow them
+    1. 
 
 1. why I expect this to happen in the future:
     1. it's becoming increasingly feasible:
