@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "selection bias and AI productivity measurement"
-date:   2026-02-12 00:00:00 -0700
+date:   2026-02-12 00:00:00 -0800
 categories: AI
 ---
 
@@ -25,7 +25,6 @@ I'm going to focus on the selection bias from using Claude conversations here:
 - the authors rightly point out that this methodology produces an upper bound on impact
 - I'm going to further make the observation that this type of methodology would under-estimate the rate of model improvement
     - so that future iterations of this work might invite mistaken pessimism on AI progress
-
 
 
 ### estimates are an upper bound on productivity gains
