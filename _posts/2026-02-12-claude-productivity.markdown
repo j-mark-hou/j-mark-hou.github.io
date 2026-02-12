@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "selection bias and AI productivity measurement"
-date:   2026-02-11 00:00:00 -0700
+date:   2026-02-12 00:00:00 -0700
 categories: AI
 ---
 
